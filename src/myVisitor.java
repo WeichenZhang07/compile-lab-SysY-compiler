@@ -39,6 +39,7 @@ public class myVisitor extends grammerBaseVisitor<Integer> {
 
     @Override
     public Integer visitCompUnit(grammerParser.CompUnitContext ctx) {
+        ctx.funcDef();
         return super.visitCompUnit(ctx);
     }
 }

@@ -1,14 +1,12 @@
 int main() {
-    int a, b;
-    a = 070;
-    b = 0x4;
-    a = a - - 4 + + b;
-    if (+-!!!a) {
-        a = - - -1;
+    int a = getint();
+    {
+        int b = 2;
+        putint(a + b);
+        int a = getint();
+        putint(a + b);
     }
-    else {
-        a = 0 + + b;
-    }
-    putint(a);
+    int b = a + 2;
+    putint(a + b);
     return 0;
 }
