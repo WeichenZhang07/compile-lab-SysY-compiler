@@ -1,17 +1,38 @@
 package tools;
 
+import dataStructure.nodeInStack;
+
 public class BasicLlvmPrinter {
-    public static void align(){
+    public static final int IS_NUM = 0, IS_VAL = 1;
+
+    public static final int I1 = 0, I32 = 1;
+
+    public static int zext(nodeInStack a, nodeInStack b, RegisterManager reg) {
+        if (a.getVarType() == b.getVarType()) {
+            return 0;
+        }
+        String regCode = reg.allocateTemperSpace();
+        if (a.getVarType() < b.getVarType()) {
+            System.out.println(regCode + " = zext i1 " + a.getContext() +
+                    "to i32");
+        } else if (a.getVarType() > b.getVarType()) {
+            System.out.println(regCode + " = zext i1 " + b.getContext() +
+                    "to i32");
+        }
+        a.setVarType(I32);
+        a.setContext(regCode);
+        return Integer.max(a.getVarType(), b.getVarType());
+    }
+
+    public static void align() {
         System.out.print("   ");
     }
 
-    public static void printAdd(String var1, String var2, String register) {
-        System.out.println(register + " = " + "add i32" + var1 + " , " + var2);
+    public static void printBinaryOp(String var1, String var2, String register, String operator) {
+        align();
+        System.out.println(register + " = " + operator + " i32 " + var1 + " , " + var2);
     }
 
-    public static void printSub(String var1, String var2, String register) {
-        System.out.println(register + " = " + "sub i32" + var1 + " , " + var2);
-    }
 
     public static void printIcmp(String var1, String var2, String register, String method) {
         String cd;

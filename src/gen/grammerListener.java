@@ -1,4 +1,5 @@
 // Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.1
+package gen;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

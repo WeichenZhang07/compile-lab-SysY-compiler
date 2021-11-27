@@ -4,16 +4,19 @@ public class nodeInStack {
     String context;
     int type;
     int varType;
+    boolean isConst;
 
     public nodeInStack() {
         this.type = -1;
+        isConst = false;
     }
 
 
-    public nodeInStack(String context, int type, int varType) {
+    public nodeInStack(String context, int type, int varType, boolean isConst) {
         this.context = context;
         this.type = type;
         this.varType = varType;
+        this.isConst = isConst;
     }
 
     public String getContext() {
@@ -38,5 +41,13 @@ public class nodeInStack {
 
     public void setVarType(int varType) {
         this.varType = varType;
+    }
+
+    public boolean isConst() {
+        return this.isConst;
+    }
+
+    public void setNotConst() {
+        this.isConst = false;
     }
 }

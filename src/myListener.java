@@ -1,16 +1,16 @@
-import gen.grammerBaseListener;
 import gen.grammerParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
+import gen.grammerBaseListener;
 import dataStructure.Function;
 import dataStructure.nodeInStack;
 import dataStructure.Var;
 import dataStructure.IfInfo;
 import tools.BasicLlvmPrinter;
+import tools.Calculator;
 import tools.RegisterManager;
 import tools.VarsManager;
 
-import java.util.HashMap;
 import java.util.Stack;
 
 
@@ -23,8 +23,6 @@ public class myListener extends grammerBaseListener {
     RegisterManager registerManager = new RegisterManager();
     VarsManager varsManager = new VarsManager();
 
-    int temperCode = 1;// to allocate name for temperVar
-    int localVarCode = 1;// to allocate name for declined localVar
     int currentLayer = 0;// block深度
     String top_var_del_type; // tell exitVarDef() function what the type of the var is;
 
@@ -33,30 +31,11 @@ public class myListener extends grammerBaseListener {
     Stack<IfInfo> IfInfoStack = new Stack<>();
 
 
-    int zext(nodeInStack a, nodeInStack b) {
-        if (a.getVarType() < b.getVarType()) {
-            int thisCode = temperCode++;
-            System.out.println("%t" + thisCode + " = zext i1 " + a.getContext() +
-                    "to i32");
-            a.setVarType(I32);
-            a.setContext("%t" + thisCode);
-        } else if (a.getVarType() > b.getVarType()) {
-            int thisCode = temperCode++;
-            System.out.println("%t" + thisCode + " = zext i1 " + b.getContext() +
-                    "to i32");
-            b.setVarType(I32);
-            b.setContext("%t" + thisCode);
-        }
-        return Integer.max(a.getVarType(), b.getVarType());
-    }
-
-
     @Override
     public void enterFuncDef(grammerParser.FuncDefContext ctx) {
         System.out.print("define dso_local ");
         String Ident = ctx.getChild(1).toString();
         String funcType = ctx.getChild(0).getChild(0).toString();
-        BasicLlvmPrinter.align();
         System.out.print("i32 ");
         System.out.println("@" + Ident + " () {");
         currentLayer++;
@@ -75,7 +54,7 @@ public class myListener extends grammerBaseListener {
         String num = child.toString();
         int dec = Integer.parseInt(num);
         String tmp = Integer.toString(dec);
-        nodeInStack node = new nodeInStack(tmp, IS_NUM, I32);
+        nodeInStack node = new nodeInStack(tmp, IS_NUM, I32, true);
         stack.push(node);
     }
 
@@ -86,7 +65,7 @@ public class myListener extends grammerBaseListener {
         num = num.substring(1).equals("") ? "0" : num.substring(1);
         int dec = Integer.parseInt(num, 8);
         String tmp = Integer.toString(dec);
-        nodeInStack node = new nodeInStack(tmp, IS_NUM, I32);
+        nodeInStack node = new nodeInStack(tmp, IS_NUM, I32, true);
         stack.push(node);
     }
 
@@ -97,7 +76,7 @@ public class myListener extends grammerBaseListener {
         num = num.substring(2);
         int dec = Integer.parseInt(num, 16);
         String tmp = Integer.toString(dec);
-        nodeInStack node = new nodeInStack(tmp, IS_NUM, I32);
+        nodeInStack node = new nodeInStack(tmp, IS_NUM, I32, true);
         stack.push(node);
     }
 
@@ -123,24 +102,22 @@ public class myListener extends grammerBaseListener {
     public void exitIfState(grammerParser.IfStateContext ctx) {
         nodeInStack right = stack.pop();
         if (ctx.getParent().getChildCount() > 2) {
-            int ifBlockCode = temperCode++;
-            int elseBlockCode = temperCode++;
-            int nextBlockCode = temperCode++;
-            IfInfo thisIfInfo = new IfInfo("%t" + ifBlockCode,
-                    "%t" + elseBlockCode, "%t" + nextBlockCode);
+            String ifBlockCode = registerManager.allocateBlockSpace();
+            String elseBlockCode = registerManager.allocateBlockSpace();
+            String nextBlockCode = registerManager.allocateBlockSpace();
+            IfInfo thisIfInfo = new IfInfo(ifBlockCode, elseBlockCode, nextBlockCode);
             IfInfoStack.push(thisIfInfo);
             BasicLlvmPrinter.align();
-            System.out.println("br i1 " + right.getContext() + ", label %t" +
-                    ifBlockCode + ", label %t" + elseBlockCode);
+            System.out.println("br i1 " + right.getContext() + ", label " +
+                    ifBlockCode + ", label " + elseBlockCode);
         } else {
-            int ifBlockCode = temperCode++;
-            int nextBlockCode = temperCode++;
-            IfInfo thisIfInfo = new IfInfo("%t" + ifBlockCode,
-                    "%t" + nextBlockCode);
+            String ifBlockCode = registerManager.allocateBlockSpace();
+            String nextBlockCode = registerManager.allocateBlockSpace();
+            IfInfo thisIfInfo = new IfInfo(ifBlockCode, nextBlockCode);
             IfInfoStack.push(thisIfInfo);
             BasicLlvmPrinter.align();
-            System.out.println("br i1 " + right.getContext() + ", label %t" +
-                    ifBlockCode + ", label %t" + nextBlockCode);
+            System.out.println("br i1 " + right.getContext() + ", label " +
+                    ifBlockCode + ", label " + nextBlockCode);
         }
     }
 
@@ -171,11 +148,11 @@ public class myListener extends grammerBaseListener {
     public void exitCond(grammerParser.CondContext ctx) {
         nodeInStack right = stack.pop();
         if (right.getVarType() != I1) {
-            int thisCode = temperCode++;
+            String thisCode = registerManager.allocateTemperSpace();
             BasicLlvmPrinter.align();
-            System.out.println("%t" + thisCode + " = trunc i32 " + right.getContext() + " to i1");
+            System.out.println(thisCode + " = trunc i32 " + right.getContext() + " to i1");
             right.setVarType(I1);
-            right.setContext("%t" + thisCode);
+            right.setContext(thisCode);
         }
         stack.push(right);
     }
@@ -212,8 +189,8 @@ public class myListener extends grammerBaseListener {
         String code = thisVar.getRegisCode();
         nodeInStack thisNode;
         if (thisVar.isConst()) {
-            thisNode = new nodeInStack(thisVar.getConstContent(), IS_NUM, I32);
-        } else thisNode = new nodeInStack(code, IS_VAL, I32);
+            thisNode = new nodeInStack(thisVar.getConstContent(), IS_NUM, I32, true);
+        } else thisNode = new nodeInStack(code, IS_VAL, I32, false);
         stack.push(thisNode);
     }
 
@@ -231,123 +208,32 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitMultipleMulExp(grammerParser.MultipleMulExpContext ctx) {
-        nodeInStack right = stack.pop();
-        nodeInStack left = stack.pop();
-        int thisVarType = zext(left, right);
-        if (right.getType() == IS_NUM && left.getType() == IS_NUM) {
-            int leftNum = Integer.parseInt(left.getContext());
-            int rightNum = Integer.parseInt(right.getContext());
-            int thisValue = Integer.MIN_VALUE;
-            String symbol = ctx.getChild(1).toString();
-            switch (symbol) {
-                case "*" -> thisValue = leftNum * rightNum;
-                case "/" -> thisValue = leftNum / rightNum;
-                case "%" -> thisValue = leftNum % rightNum;
-                default -> System.exit(3);
-            }
-            stack.push(new nodeInStack(Integer.toString(thisValue), IS_NUM, thisVarType));
-        } else {
-            String symbol = ctx.getChild(1).toString();
-            int newCode = temperCode++;
-            String tmp = "%t" + newCode + " = ";
-            switch (symbol) {
-                case "*" -> tmp += "mul nsw ";
-                case "/" -> tmp += "sdiv ";
-                case "%" -> tmp += "srem ";
-                default -> System.exit(3);
-            }
-            tmp += "i32 ";
-            tmp += left.getContext() + ",";
-            tmp += right.getContext();
-            BasicLlvmPrinter.align();
-            System.out.println(tmp);
-            nodeInStack thisNode = new nodeInStack("%t" + newCode, IS_VAL,
-                    thisVarType);
-            stack.push(thisNode);
-        }
+        String operator = ctx.getChild(1).toString();
+        BinaryExp(operator);
     }
 
     @Override
     public void exitMultipleAddExp(grammerParser.MultipleAddExpContext ctx) {
-        int thisValue;
+        String operator = ctx.getChild(1).toString();
+        BinaryExp(operator);
+
+    }
+
+    private void BinaryExp(String operator) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = zext(left, right);
-        if (right.getType() == IS_NUM && left.getType() == IS_NUM) {
-            String symbol = ctx.getChild(1).toString();
-            int rightNum = Integer.parseInt(right.getContext());
-            int leftNum = Integer.parseInt(left.getContext());
-            switch (symbol) {
-                case "+" -> thisValue = leftNum + rightNum;
-                case "-" -> thisValue = leftNum - rightNum;
-                default -> thisValue = 0;
-            }
-            nodeInStack thisNode = new nodeInStack(Integer.toString(thisValue), IS_NUM, thisVarType);
-            stack.push(thisNode);
-        } else {
-            String symbol = ctx.getChild(1).toString();
-            int newCode = temperCode++;
-            String tmp = "%t" + newCode + " = ";
-            switch (symbol) {
-                case "+" -> tmp += "add ";
-                case "-" -> tmp += "sub ";
-                default -> System.exit(3);
-            }
-            tmp += "i32 ";
-            tmp += (left.getContext() + ", " + right.getContext());
-            nodeInStack thisNode = new nodeInStack("%t" + newCode, IS_VAL, thisVarType);
-            BasicLlvmPrinter.align();
-            System.out.println(tmp);
-            stack.push(thisNode);
-        }
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
+        nodeInStack thisNode = Calculator.BinaryOperation(left, right, operator, registerManager);
+        stack.push(thisNode);
     }
 
     @Override
     public void exitMultipleRelExp(grammerParser.MultipleRelExpContext ctx) {
         String character;
         character = ctx.getChild(1).toString();
-
         nodeInStack right = stack.pop(), left = stack.pop();
-        int thisVarType = zext(left, right);
-        if (right.getType() == IS_NUM && left.getType() == IS_NUM) {
-            boolean r;
-            switch (character) {
-                case (">") -> {
-                    r = Integer.parseInt(left.getContext()) >
-                            Integer.parseInt(right.getContext());
-                }
-                case (">=") -> {
-                    r = Integer.parseInt(left.getContext()) >=
-                            Integer.parseInt(right.getContext());
-                }
-                case ("<=") -> {
-                    r = Integer.parseInt(left.getContext()) <=
-                            Integer.parseInt(right.getContext());
-                }
-                case ("<") -> {
-                    r = Integer.parseInt(left.getContext()) <
-                            Integer.parseInt(right.getContext());
-                }
-                case ("==") -> {
-                    r = Integer.parseInt(left.getContext()) ==
-                            Integer.parseInt(right.getContext());
-                }
-                default -> {
-                    r = false;
-                    System.exit(-1);
-                }
-            }
-            int thisCode = temperCode++;
-            nodeInStack thisNode = new nodeInStack(r ? "1" : "0", IS_NUM, I1);
-            stack.push(thisNode);
-        } //若能够在编译过程中得出条件运算结果
-        else {
-            int thisCode = temperCode++;
-            nodeInStack thisNode = new nodeInStack("%t" + thisCode, IS_VAL, I1);
-            BasicLlvmPrinter.printIcmp(left.getContext(), right.getContext(), "%t" + thisCode, character);
-            BasicLlvmPrinter.align();
-            stack.push(thisNode);
-        }
+        stack.push(Calculator.compare(left, right, character, registerManager));
+
     }
 
     @Override
@@ -355,19 +241,20 @@ public class myListener extends grammerBaseListener {
         String opC = ctx.getChild(1).toString();
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = zext(left, right);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
         nodeInStack thisNode;
         String operation = opC.equals("==") ? "eq" : "ne";
 
         if (right.getType() == IS_NUM && left.getType() == IS_NUM) {
             int result = right.getContext().equals(left.getContext()) ? 1 : 0;
-            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, thisVarType);
+            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, thisVarType,
+                    right.isConst() && left.isConst());
         } else {
-            int thisCode = temperCode++;
+            String thisCode = registerManager.allocateTemperSpace();
             BasicLlvmPrinter.align();
-            System.out.println("%t" + thisCode + " = icmp " + operation + " i32 " + left.getContext() + ", " +
+            System.out.println(thisCode + " = icmp " + operation + " i32 " + left.getContext() + ", " +
                     right.getContext());
-            thisNode = new nodeInStack("%t" + thisCode, IS_VAL, I1);
+            thisNode = new nodeInStack(thisCode, IS_VAL, I1, left.isConst() && right.isConst());
         }
         stack.push(thisNode);
     }
@@ -376,19 +263,19 @@ public class myListener extends grammerBaseListener {
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = zext(left, right);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
         nodeInStack thisNode;
 
         if (right.getType() != IS_VAL && left.getType() != IS_VAL) {
             int result = Integer.parseInt(right.getContext()) != 0
                     && Integer.parseInt(left.getContext()) != 1 ? 1 : 0;
-            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I1);
+            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I1, left.isConst() && right.isConst());
         } else {
-            int thisCode = temperCode++;
+            String thisCode = registerManager.allocateTemperSpace();
             BasicLlvmPrinter.align();
-            System.out.println("%t" + thisCode + " = and " + " i1 " + left.getContext() + ", " +
+            System.out.println(thisCode + " = and " + " i1 " + left.getContext() + ", " +
                     right.getContext());
-            thisNode = new nodeInStack("%t" + thisCode, IS_VAL, I1);
+            thisNode = new nodeInStack(thisCode, IS_VAL, I1, left.isConst() && right.isConst());
         }
         stack.push(thisNode);
     }
@@ -397,19 +284,19 @@ public class myListener extends grammerBaseListener {
     public void exitMultipleLOrExp(grammerParser.MultipleLOrExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = zext(left, right);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
         nodeInStack thisNode;
 
         if (right.getType() != IS_VAL && left.getType() != IS_VAL) {
             int result = Integer.parseInt(right.getContext()) != 0
                     || Integer.parseInt(left.getContext()) != 0 ? 1 : 0;
-            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I1);
+            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I1, left.isConst() && right.isConst());
         } else {
-            int thisCode = temperCode++;
+            String thisCode = registerManager.allocateTemperSpace();
             BasicLlvmPrinter.align();
-            System.out.println("%t" + thisCode + " = or " + " i1 " + left.getContext() + ", " +
+            System.out.println(thisCode + " = or " + " i1 " + left.getContext() + ", " +
                     right.getContext());
-            thisNode = new nodeInStack("%t" + thisCode, IS_VAL, I1);
+            thisNode = new nodeInStack(thisCode, IS_VAL, I1, left.isConst() && right.isConst());
         }
         stack.push(thisNode);
     }
@@ -419,9 +306,8 @@ public class myListener extends grammerBaseListener {
         if (ctx.getChild(0) instanceof grammerParser.LvalContext) {
             nodeInStack right = stack.pop();
             if (right.getType() == IS_VAL) {
-
-                int newCode = temperCode++;
-                nodeInStack thisNode = new nodeInStack("%t" + newCode, IS_VAL, I32);
+                String thisCode = registerManager.allocateTemperSpace();
+                nodeInStack thisNode = new nodeInStack(thisCode, IS_VAL, I32, right.isConst());
                 BasicLlvmPrinter.align();
                 System.out.println(thisNode.getContext() + " = load i32, i32* " + right.getContext());
                 stack.push(thisNode);
@@ -432,6 +318,11 @@ public class myListener extends grammerBaseListener {
     @Override
     public void enterVarDecl(grammerParser.VarDeclContext ctx) {
         top_var_del_type = ctx.getChild(0).toString();
+    }
+
+    @Override
+    public void exitVarDecl(grammerParser.VarDeclContext ctx) {
+        super.exitVarDecl(ctx);
     }
 
     @Override
@@ -467,13 +358,13 @@ public class myListener extends grammerBaseListener {
         }
         t.append(")");
         if (thisFunc.getType().equals("int")) {
-            int thisCode = temperCode++;
-            t.insert(0, "%t" + thisCode + " = ");
-            nodeInStack thisNode = new nodeInStack("%t" + thisCode, IS_NUM, I32);
+            String thisCode = registerManager.allocateTemperSpace();
+            t.insert(0, thisCode + " = ");
+            nodeInStack thisNode = new nodeInStack(thisCode, IS_NUM, I32, false);
             stack.push(thisNode);
 
         } else {
-            nodeInStack thisNode = new nodeInStack("", IS_VAL, -1);
+            nodeInStack thisNode = new nodeInStack("", IS_VAL, -1, false);
             stack.push(thisNode);
         }
         BasicLlvmPrinter.align();
@@ -483,56 +374,8 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitUnary(grammerParser.UnaryContext ctx) {
         nodeInStack right = stack.pop();
-        nodeInStack unaryExp;
-        if (right.getType() != IS_VAL) {
-            int thisValue = Integer.parseInt(right.getContext());
-            if (ctx.getChildCount() == 2) {
-                String symbol = ctx.getChild(0).getChild(0).toString();
-                if (symbol.equals("-")) {
-                    unaryExp = new nodeInStack(Integer.toString(-thisValue),
-                            IS_NUM, right.getVarType());
-                } else if (symbol.equals("!")) {
-                    unaryExp = new nodeInStack(Integer.toString(thisValue == 0 ? 1 : 0),
-                            IS_NUM, I1);
-                } else {
-                    unaryExp = new nodeInStack(Integer.toString(thisValue),
-                            IS_NUM, right.getVarType());
-                }
-                stack.push(unaryExp);
-            }
-
-
-        } else {
-            String tmp = "";
-            int newCode;
-            nodeInStack thisNode = right;
-            if (ctx.getChildCount() == 2) {
-                String symbol = ctx.getChild(0).getChild(0).toString();
-                if (symbol.equals("-")) {
-                    if (right.getVarType() != I32) {
-                        int thisCode = temperCode++;
-                        BasicLlvmPrinter.align();
-                        System.out.println("%t" + thisCode + " = zext i1 " + right.getContext() + " to i32");
-                        right.setVarType(I32);
-                        right.setContext("%t" + thisCode);
-                    }
-                    newCode = temperCode++;
-                    tmp += ("%t" + newCode + " = " + "sub " + "i32 0, " + right.getContext());
-                    BasicLlvmPrinter.align();
-                    System.out.println(tmp);
-                    thisNode = new nodeInStack("%t" + newCode, IS_VAL, right.getVarType());
-                } else if (symbol.equals("!")) {
-                    newCode = temperCode++;
-                    tmp += ("%t" + newCode + " = " + "icmp eq " + (right.getVarType() == I32 ? "i32 " : "i1 ") +
-                            right.getContext() + ", " +
-                            "0");
-                    BasicLlvmPrinter.align();
-                    System.out.println(tmp);
-                    thisNode = new nodeInStack("%t" + newCode, IS_VAL, I1);
-                }
-            }
-            stack.push(thisNode);
-        }
+        String operator = ctx.getChild(0).toString();
+        stack.push(Calculator.unaryOperation(right, operator, registerManager));
     }
 
     @Override
@@ -545,7 +388,7 @@ public class myListener extends grammerBaseListener {
     public void exitInitial(grammerParser.InitialContext ctx) {
         String newName = ctx.getChild(0).toString();
         nodeInStack right = stack.pop();
-        varsManager.addVar(newName, top_var_del_type, registerManager, right.getContext());
+        varsManager.addVar(newName, top_var_del_type, registerManager, right);
     }
 
     @Override
@@ -559,7 +402,7 @@ public class myListener extends grammerBaseListener {
         if (right.getType() != IS_NUM) System.exit(6);
         String name = ctx.getChild(0).toString();
         varsManager.addConstVar(name, top_var_del_type, right.getContext());
-        nodeInStack thisNode = new nodeInStack(right.getContext(), IS_NUM, I32);
+        nodeInStack thisNode = new nodeInStack(right.getContext(), IS_NUM, I32, true);
         stack.push(thisNode);
     }
 

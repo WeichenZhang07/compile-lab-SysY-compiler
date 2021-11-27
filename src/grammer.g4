@@ -1,6 +1,6 @@
 grammar grammer;
 
-compUnit : funcDef;
+compUnit : decl* funcDef;
 //ignore \t\r\n
 //skip notes
 SPACE: ('\t'|'\n'|'\r'|' ') -> channel(HIDDEN);

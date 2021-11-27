@@ -1,6 +1,8 @@
 import gen.*;
 import org.antlr.v4.runtime.*;
+
 import java.io.*;
+
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class Test {
@@ -9,6 +11,10 @@ public class Test {
             File dir = new File(args[1]);
             PrintStream out = new PrintStream(dir);
             System.setOut(out);
+            System.out.println("declare i32 @getint()\n" +
+                    "declare void @putint(i32)\n" +
+                    "declare void @putch(i32)\n" +
+                    "declare i32 @getch()");
             //create lexer and parse and reallocate Error listeners
             CharStream input = CharStreams.fromFileName(args[0]);
             grammerLexer lexer = new grammerLexer(input);
@@ -22,7 +28,7 @@ public class Test {
 
             ParseTreeWalker walker = new ParseTreeWalker();
 
-            walker.walk(new myListener(),tree);
+            walker.walk(new myListener(), tree);
             System.out.println();
         } catch (IOException e) {
             System.err.println(e);

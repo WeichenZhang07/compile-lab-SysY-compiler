@@ -9,8 +9,6 @@ COPY ./ /app/
 WORKDIR /app/
 RUN mkdir out
 RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar -d ./out ./src/gen/*.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/myListener.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/myVisitor.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/lexerErrorListener.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/parserErrorListener.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/Test.java
+RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/dataStructure/*.java
+RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/tools/*.java
+RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/*.java
