@@ -56,6 +56,6 @@ public class BasicLlvmPrinter {
                 cd = "";
             }
         }
-        System.out.println(register + " = icmp " + cd + " " + var1 + " , " + var2);
+        System.out.println(register + " = icmp " + cd + " i32 " + var1 + " , " + var2);
     }
 }
