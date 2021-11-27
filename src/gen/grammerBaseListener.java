@@ -1,5 +1,4 @@
-// Generated from E:/Documents/code/compile/compile-Lab4/src\grammer.g4 by ANTLR 4.9.1
-package gen;
+// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.1
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -35,6 +34,18 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDecl(grammerParser.DeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterGlobalDecl(grammerParser.GlobalDeclContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGlobalDecl(grammerParser.GlobalDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

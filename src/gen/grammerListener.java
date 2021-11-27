@@ -1,5 +1,4 @@
-// Generated from E:/Documents/code/compile/compile-Lab4/src\grammer.g4 by ANTLR 4.9.1
-package gen;
+// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -27,6 +26,16 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDecl(grammerParser.DeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#globalDecl}.
+	 * @param ctx the parse tree
+	 */
+	void enterGlobalDecl(grammerParser.GlobalDeclContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#globalDecl}.
+	 * @param ctx the parse tree
+	 */
+	void exitGlobalDecl(grammerParser.GlobalDeclContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#constDecl}.
 	 * @param ctx the parse tree
