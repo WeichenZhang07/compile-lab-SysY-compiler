@@ -345,7 +345,7 @@ public class myListener extends grammerBaseListener {
         if (thisFunc.getType().equals("int")) {
             String thisCode = registerManager.allocateTemperSpace();
             t.insert(0, thisCode + " = ");
-            nodeInStack thisNode = new nodeInStack(thisCode, IS_NUM, I32, false);
+            nodeInStack thisNode = new nodeInStack(thisCode, IS_VAL, I32, false);
             stack.push(thisNode);
 
         } else {

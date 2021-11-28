@@ -35,7 +35,7 @@ stmt : 'return' exp ';' # return |
         block # singleBlock|
         'continue' ';'#continue|
         'break' ';'#break|
-        exp ';' #singleExp;
+        exp? ';' #singleExp;
 lval : Ident;
 
 
