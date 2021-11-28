@@ -1,5 +1,6 @@
 // Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.1
 package gen;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -34,18 +35,6 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDecl(grammerParser.DeclContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterGlobalDecl(grammerParser.GlobalDeclContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitGlobalDecl(grammerParser.GlobalDeclContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -207,6 +196,18 @@ public class grammerBaseListener implements grammerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterWhileState(grammerParser.WhileStateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWhileState(grammerParser.WhileStateContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterIfBlock(grammerParser.IfBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -267,6 +268,18 @@ public class grammerBaseListener implements grammerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterWhile(grammerParser.WhileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWhile(grammerParser.WhileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSingleBlock(grammerParser.SingleBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -274,6 +287,30 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSingleBlock(grammerParser.SingleBlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterContinue(grammerParser.ContinueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitContinue(grammerParser.ContinueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBreak(grammerParser.BreakContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBreak(grammerParser.BreakContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

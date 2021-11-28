@@ -1,15 +1,12 @@
+import dataStructure.*;
+import dataStructure.block.BlockInfo;
+import dataStructure.block.IfInfo;
+import dataStructure.block.WhileBlockInfo;
 import gen.grammerParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import gen.grammerBaseListener;
-import dataStructure.Function;
-import dataStructure.nodeInStack;
-import dataStructure.Var;
-import dataStructure.IfInfo;
-import tools.BasicLlvmPrinter;
-import tools.Calculator;
-import tools.RegisterManager;
-import tools.VarsManager;
+import tools.*;
 
 import java.util.Stack;
 
@@ -22,13 +19,13 @@ public class myListener extends grammerBaseListener {
 
     RegisterManager registerManager = new RegisterManager();
     VarsManager varsManager = new VarsManager();
+    BlockManager blockManager = new BlockManager();
 
     int currentLayer = 0;// block深度
     String top_var_del_type; // tell exitVarDef() function what the type of the var is;
 
 
     Stack<nodeInStack> stack = new Stack<>(); //store information to be passed to higher layer
-    Stack<IfInfo> IfInfoStack = new Stack<>();
 
 
     @Override
@@ -44,7 +41,6 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitFuncDef(grammerParser.FuncDefContext ctx) {
         currentLayer--;
-        BasicLlvmPrinter.align();
         System.out.println("}");
     }
 
@@ -102,28 +98,20 @@ public class myListener extends grammerBaseListener {
     public void exitIfState(grammerParser.IfStateContext ctx) {
         nodeInStack right = stack.pop();
         if (ctx.getParent().getChildCount() > 2) {
-            String ifBlockCode = registerManager.allocateBlockSpace();
-            String elseBlockCode = registerManager.allocateBlockSpace();
-            String nextBlockCode = registerManager.allocateBlockSpace();
-            IfInfo thisIfInfo = new IfInfo(ifBlockCode, elseBlockCode, nextBlockCode);
-            IfInfoStack.push(thisIfInfo);
-            BasicLlvmPrinter.align();
-            System.out.println("br i1 " + right.getContext() + ", label " +
-                    ifBlockCode + ", label " + elseBlockCode);
+            blockManager.enterIfElseBlock(registerManager);
+            IfInfo thisBlock = blockManager.getCurrentIfInfo();
+            BasicLlvmPrinter.printBr(right.getContext(), thisBlock.getIfBlockCode(), thisBlock.getElseBlockCode());
         } else {
-            String ifBlockCode = registerManager.allocateBlockSpace();
-            String nextBlockCode = registerManager.allocateBlockSpace();
-            IfInfo thisIfInfo = new IfInfo(ifBlockCode, nextBlockCode);
-            IfInfoStack.push(thisIfInfo);
-            BasicLlvmPrinter.align();
-            System.out.println("br i1 " + right.getContext() + ", label " +
-                    ifBlockCode + ", label " + nextBlockCode);
+            blockManager.enterIfSingleBlock(registerManager);
+            IfInfo thisBlockInfo = blockManager.getCurrentIfInfo();
+            BasicLlvmPrinter.printBr(right.getContext(), thisBlockInfo.getIfBlockCode(),
+                    thisBlockInfo.getNextBlockCode());
         }
     }
 
     @Override
     public void enterIfBlock(grammerParser.IfBlockContext ctx) {
-        IfInfo thisInfo = IfInfoStack.peek();
+        IfInfo thisInfo = blockManager.getCurrentIfInfo();
         System.out.println(thisInfo.getIfBlockCode().substring(1) + ":");
     }
 
@@ -139,9 +127,8 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitIfBlock(grammerParser.IfBlockContext ctx) {
-        IfInfo thisInfo = IfInfoStack.peek();
-        BasicLlvmPrinter.align();
-        System.out.println("br label " + thisInfo.getNextBlockCode());
+        IfInfo thisInfo = blockManager.getCurrentIfInfo();
+        BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode());
     }
 
     @Override
@@ -159,21 +146,19 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void enterElseBlock(grammerParser.ElseBlockContext ctx) {
-        IfInfo thisInfo = IfInfoStack.peek();
+        IfInfo thisInfo = blockManager.getCurrentIfInfo();
         System.out.println(thisInfo.getElseBlockCode().substring(1) + ":");
     }
 
     @Override
     public void exitElseBlock(grammerParser.ElseBlockContext ctx) {
-        IfInfo thisInfo = IfInfoStack.peek();
-        BasicLlvmPrinter.align();
-        System.out.println("br label " + thisInfo.getNextBlockCode());
+        IfInfo thisInfo = blockManager.getCurrentIfInfo();
+        BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode());
     }
-
 
     @Override
     public void exitIf(grammerParser.IfContext ctx) {
-        IfInfo thisInfo = IfInfoStack.pop();
+        IfInfo thisInfo = (IfInfo) blockManager.exitCurrentBlock();
         System.out.println(thisInfo.getNextBlockCode().substring(1) + ":");
     }
 
@@ -408,5 +393,41 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitFuncRParams(grammerParser.FuncRParamsContext ctx) {
+    }
+
+
+    @Override
+    public void enterWhileState(grammerParser.WhileStateContext ctx) {
+        blockManager.enterWhileBlock(registerManager);
+        WhileBlockInfo thisBlockInfo = blockManager.getCurrentWhileInfo();
+        BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode());
+        System.out.println(thisBlockInfo.getWhileStateCode().substring(1) + ":");
+    }
+
+    @Override
+    public void exitWhileState(grammerParser.WhileStateContext ctx) {
+        nodeInStack right = stack.pop();
+        WhileBlockInfo thisBlockInfo = blockManager.getCurrentWhileInfo();
+        thisBlockInfo.setCondRegName(right.getContext());
+        BasicLlvmPrinter.printBr(thisBlockInfo.getCondRegName(), thisBlockInfo.getWhileBlockCode(),
+                thisBlockInfo.getNextBlockCode());
+        System.out.println(thisBlockInfo.getWhileBlockCode().substring(1) + ":");
+    }
+
+    @Override
+    public void exitWhile(grammerParser.WhileContext ctx) {
+        WhileBlockInfo thisBlockInfo = (WhileBlockInfo) blockManager.exitCurrentBlock();
+        BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode());
+        System.out.println(thisBlockInfo.getNextBlockCode().substring(1) + ":");
+    }
+
+    @Override
+    public void exitContinue(grammerParser.ContinueContext ctx) {
+        BasicLlvmPrinter.printBr(blockManager.getCurrentWhileInfo().getWhileStateCode());
+    }
+
+    @Override
+    public void exitBreak(grammerParser.BreakContext ctx) {
+        BasicLlvmPrinter.printBr(blockManager.getCurrentWhileInfo().getNextBlockCode());
     }
 }

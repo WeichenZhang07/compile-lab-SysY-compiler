@@ -1,31 +1,19 @@
-package dataStructure;
+package dataStructure.block;
 
-public class IfInfo {
-    static final int IF_SINGLE = 0, IF_ELSE = 1;
-    int type;
-    String ifBlockCode;
-    String elseBlockCode;
-    String nextBlockCode;
+public class IfInfo extends BlockInfo {
+    String ifBlockCode, elseBlockCode, nextBlockCode;
 
     public IfInfo(String ifBlockCode, String nextBlockCode) {
-        type = IF_SINGLE;
+        super(IF_SINGLE);
         this.ifBlockCode = ifBlockCode;
         this.nextBlockCode = nextBlockCode;
     }
 
     public IfInfo(String ifBlockCode, String elseBlockCode, String nextBlockCode) {
-        type = IF_ELSE;
-        this.elseBlockCode = elseBlockCode;
+        super(IF_ELSE);
         this.ifBlockCode = ifBlockCode;
+        this.elseBlockCode = elseBlockCode;
         this.nextBlockCode = nextBlockCode;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public void setType(int type) {
-        this.type = type;
     }
 
     public String getIfBlockCode() {

@@ -33,7 +33,6 @@ public class BasicLlvmPrinter {
         System.out.println(register + " = " + operator + " i32 " + var1 + " , " + var2);
     }
 
-
     public static void printIcmp(String var1, String var2, String register, String method) {
         String cd;
         switch (method) {
@@ -56,6 +55,17 @@ public class BasicLlvmPrinter {
                 cd = "";
             }
         }
+        align();
         System.out.println(register + " = icmp " + cd + " i32 " + var1 + " , " + var2);
+    }
+
+    public static void printBr(String cond, String ifTrue, String ifFalse) {
+        align();
+        System.out.println("br i1 " + cond + ", label " + ifTrue + ", label " + ifFalse);
+    }
+
+    public static void printBr(String dest) {
+        align();
+        System.out.println("br label " + dest);
     }
 }

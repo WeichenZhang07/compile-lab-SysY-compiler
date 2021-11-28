@@ -25,12 +25,16 @@ Ident : NoneDigit ( NoneDigit | Digit )*;
 block : '{' blockItem* '}';
 blockItem: decl|stmt;
 ifState :'if' '(' cond ')';
+whileState : 'while' '(' cond ')';
 ifBlock : stmt;
 elseBlock : 'else' stmt;
 stmt : 'return' exp ';' # return |
         lval '=' exp ';'# assignment|
         ifState ifBlock elseBlock? # if|
+        whileState stmt #while |
         block # singleBlock|
+        'continue' ';'#continue|
+        'break' ';'#break|
         exp ';' #singleExp;
 lval : Ident;
 

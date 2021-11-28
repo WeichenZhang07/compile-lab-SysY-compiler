@@ -28,16 +28,6 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitDecl(grammerParser.DeclContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link grammerParser#globalDecl}.
-	 * @param ctx the parse tree
-	 */
-	void enterGlobalDecl(grammerParser.GlobalDeclContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link grammerParser#globalDecl}.
-	 * @param ctx the parse tree
-	 */
-	void exitGlobalDecl(grammerParser.GlobalDeclContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link grammerParser#constDecl}.
 	 * @param ctx the parse tree
 	 */
@@ -172,6 +162,16 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitIfState(grammerParser.IfStateContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link grammerParser#whileState}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhileState(grammerParser.WhileStateContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#whileState}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhileState(grammerParser.WhileStateContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link grammerParser#ifBlock}.
 	 * @param ctx the parse tree
 	 */
@@ -228,6 +228,18 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitIf(grammerParser.IfContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code while}
+	 * labeled alternative in {@link grammerParser#stmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhile(grammerParser.WhileContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code while}
+	 * labeled alternative in {@link grammerParser#stmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhile(grammerParser.WhileContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code singleBlock}
 	 * labeled alternative in {@link grammerParser#stmt}.
 	 * @param ctx the parse tree
@@ -239,6 +251,30 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSingleBlock(grammerParser.SingleBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code continue}
+	 * labeled alternative in {@link grammerParser#stmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterContinue(grammerParser.ContinueContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code continue}
+	 * labeled alternative in {@link grammerParser#stmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitContinue(grammerParser.ContinueContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code break}
+	 * labeled alternative in {@link grammerParser#stmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterBreak(grammerParser.BreakContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code break}
+	 * labeled alternative in {@link grammerParser#stmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitBreak(grammerParser.BreakContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code singleExp}
 	 * labeled alternative in {@link grammerParser#stmt}.
