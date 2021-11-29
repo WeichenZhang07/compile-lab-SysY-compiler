@@ -7,9 +7,10 @@ public class Calculator {
 
     public static final int I1 = 0, I32 = 1;
 
-    public static nodeInStack compare(nodeInStack left, nodeInStack right, String operator, RegisterManager reg) {
+    public static nodeInStack compare(nodeInStack left, nodeInStack right, String operator, RegisterManager reg,
+                                      llvmCmdBuffer buffer) {
         nodeInStack thisNode;
-        int thisVarType = BasicLlvmPrinter.zext(left, right, reg);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, reg, buffer);
         if (right.getType() == IS_NUM && left.getType() == IS_NUM) {
             boolean r;
             switch (operator) {
@@ -43,12 +44,13 @@ public class Calculator {
         else {
             String thisCode = reg.allocateTemperSpace();
             thisNode = new nodeInStack(thisCode, IS_VAL, I1, right.isConst() && left.isConst());
-            BasicLlvmPrinter.printIcmp(left.getContext(), right.getContext(), thisCode, operator);
+            BasicLlvmPrinter.printIcmp(left.getContext(), right.getContext(), thisCode, operator, buffer);
         }
         return thisNode;
     }
 
-    public static nodeInStack BinaryOperation(nodeInStack left, nodeInStack right, String operator, RegisterManager reg) {
+    public static nodeInStack BinaryOperation(nodeInStack left, nodeInStack right, String operator, RegisterManager reg,
+                                              llvmCmdBuffer buffer) {
         String operateCode;
         nodeInStack thisNode;
         if (left.getType() == IS_NUM && right.getType() == IS_NUM) {
@@ -72,7 +74,7 @@ public class Calculator {
                 case "%" -> "srem";
                 default -> null;
             };
-            BasicLlvmPrinter.printBinaryOp(left.getContext(), right.getContext(), newCode, operateCode);
+            BasicLlvmPrinter.printBinaryOp(left.getContext(), right.getContext(), newCode, operateCode, buffer);
             thisNode = new nodeInStack(newCode, IS_VAL, I32, left.isConst() && right.isConst());
         }
         return thisNode;

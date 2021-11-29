@@ -20,6 +20,7 @@ public class myListener extends grammerBaseListener {
     RegisterManager registerManager = new RegisterManager();
     VarsManager varsManager = new VarsManager();
     BlockManager blockManager = new BlockManager();
+    llvmCmdBuffer cmdBuffer = new llvmCmdBuffer();
 
     int currentLayer = 0;// block深度
     String top_var_del_type; // tell exitVarDef() function what the type of the var is;
@@ -41,6 +42,8 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitFuncDef(grammerParser.FuncDefContext ctx) {
         currentLayer--;
+        cmdBuffer.putsAllocate();
+        cmdBuffer.putsOperate();
         System.out.println("}");
     }
 
@@ -82,16 +85,14 @@ public class myListener extends grammerBaseListener {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
         if (left.getType() == IS_NUM) System.exit(7);
-        BasicLlvmPrinter.align();
-        System.out.println("store i32 " + right.getContext() + ", i32* " + left.getContext());
+        cmdBuffer.addToOperateBuffer("store i32 " + right.getContext() + ", i32* " + left.getContext());
 
     }
 
     @Override
     public void exitReturn(grammerParser.ReturnContext ctx) {
         nodeInStack right = stack.pop();
-        BasicLlvmPrinter.align();
-        System.out.println("ret i32 " + right.getContext());
+        cmdBuffer.addToOperateBuffer("ret i32 " + right.getContext());
     }
 
     @Override
@@ -100,19 +101,19 @@ public class myListener extends grammerBaseListener {
         if (ctx.getParent().getChildCount() > 2) {
             blockManager.enterIfElseBlock(registerManager);
             IfInfo thisBlock = blockManager.getCurrentIfInfo();
-            BasicLlvmPrinter.printBr(right.getContext(), thisBlock.getIfBlockCode(), thisBlock.getElseBlockCode());
+            BasicLlvmPrinter.printBr(right.getContext(), thisBlock.getIfBlockCode(), thisBlock.getElseBlockCode(), cmdBuffer);
         } else {
             blockManager.enterIfSingleBlock(registerManager);
             IfInfo thisBlockInfo = blockManager.getCurrentIfInfo();
             BasicLlvmPrinter.printBr(right.getContext(), thisBlockInfo.getIfBlockCode(),
-                    thisBlockInfo.getNextBlockCode());
+                    thisBlockInfo.getNextBlockCode(), cmdBuffer);
         }
     }
 
     @Override
     public void enterIfBlock(grammerParser.IfBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
-        System.out.println(thisInfo.getIfBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisInfo.getIfBlockCode().substring(1) + ":");
     }
 
     @Override
@@ -128,7 +129,7 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitIfBlock(grammerParser.IfBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
-        BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode());
+        BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode(), cmdBuffer);
     }
 
     @Override
@@ -136,8 +137,7 @@ public class myListener extends grammerBaseListener {
         nodeInStack right = stack.pop();
         if (right.getVarType() != I1) {
             String thisCode = registerManager.allocateTemperSpace();
-            BasicLlvmPrinter.align();
-            System.out.println(thisCode + " = trunc i32 " + right.getContext() + " to i1");
+            cmdBuffer.addToOperateBuffer(thisCode + " = trunc i32 " + right.getContext() + " to i1");
             right.setVarType(I1);
             right.setContext(thisCode);
         }
@@ -147,19 +147,19 @@ public class myListener extends grammerBaseListener {
     @Override
     public void enterElseBlock(grammerParser.ElseBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
-        System.out.println(thisInfo.getElseBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisInfo.getElseBlockCode().substring(1) + ":");
     }
 
     @Override
     public void exitElseBlock(grammerParser.ElseBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
-        BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode());
+        BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode(), cmdBuffer);
     }
 
     @Override
     public void exitIf(grammerParser.IfContext ctx) {
         IfInfo thisInfo = (IfInfo) blockManager.exitCurrentBlock();
-        System.out.println(thisInfo.getNextBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisInfo.getNextBlockCode().substring(1) + ":");
     }
 
     @Override
@@ -207,8 +207,8 @@ public class myListener extends grammerBaseListener {
     private void BinaryExp(String operator) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
-        nodeInStack thisNode = Calculator.BinaryOperation(left, right, operator, registerManager);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
+        nodeInStack thisNode = Calculator.BinaryOperation(left, right, operator, registerManager, cmdBuffer);
         stack.push(thisNode);
     }
 
@@ -217,7 +217,7 @@ public class myListener extends grammerBaseListener {
         String character;
         character = ctx.getChild(1).toString();
         nodeInStack right = stack.pop(), left = stack.pop();
-        stack.push(Calculator.compare(left, right, character, registerManager));
+        stack.push(Calculator.compare(left, right, character, registerManager, cmdBuffer));
 
     }
 
@@ -226,7 +226,7 @@ public class myListener extends grammerBaseListener {
         String opC = ctx.getChild(1).toString();
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
         nodeInStack thisNode;
         String operation = opC.equals("==") ? "eq" : "ne";
 
@@ -236,8 +236,7 @@ public class myListener extends grammerBaseListener {
                     right.isConst() && left.isConst());
         } else {
             String thisCode = registerManager.allocateTemperSpace();
-            BasicLlvmPrinter.align();
-            System.out.println(thisCode + " = icmp " + operation + " i32 " + left.getContext() + ", " +
+            cmdBuffer.addToOperateBuffer(thisCode + " = icmp " + operation + " i32 " + left.getContext() + ", " +
                     right.getContext());
             thisNode = new nodeInStack(thisCode, IS_VAL, I1, left.isConst() && right.isConst());
         }
@@ -248,7 +247,7 @@ public class myListener extends grammerBaseListener {
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
         nodeInStack thisNode;
 
         if (right.getType() != IS_VAL && left.getType() != IS_VAL) {
@@ -257,8 +256,7 @@ public class myListener extends grammerBaseListener {
             thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I1, left.isConst() && right.isConst());
         } else {
             String thisCode = registerManager.allocateTemperSpace();
-            BasicLlvmPrinter.align();
-            System.out.println(thisCode + " = and " + " i1 " + left.getContext() + ", " +
+            cmdBuffer.addToOperateBuffer(thisCode + " = and " + " i1 " + left.getContext() + ", " +
                     right.getContext());
             thisNode = new nodeInStack(thisCode, IS_VAL, I1, left.isConst() && right.isConst());
         }
@@ -269,7 +267,7 @@ public class myListener extends grammerBaseListener {
     public void exitMultipleLOrExp(grammerParser.MultipleLOrExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager);
+        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
         nodeInStack thisNode;
 
         if (right.getType() != IS_VAL && left.getType() != IS_VAL) {
@@ -278,8 +276,7 @@ public class myListener extends grammerBaseListener {
             thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I1, left.isConst() && right.isConst());
         } else {
             String thisCode = registerManager.allocateTemperSpace();
-            BasicLlvmPrinter.align();
-            System.out.println(thisCode + " = or " + " i1 " + left.getContext() + ", " +
+            cmdBuffer.addToOperateBuffer(thisCode + " = or " + " i1 " + left.getContext() + ", " +
                     right.getContext());
             thisNode = new nodeInStack(thisCode, IS_VAL, I1, left.isConst() && right.isConst());
         }
@@ -293,8 +290,7 @@ public class myListener extends grammerBaseListener {
             if (right.getType() == IS_VAL) {
                 String thisCode = registerManager.allocateTemperSpace();
                 nodeInStack thisNode = new nodeInStack(thisCode, IS_VAL, I32, right.isConst());
-                BasicLlvmPrinter.align();
-                System.out.println(thisNode.getContext() + " = load i32, i32* " + right.getContext());
+                cmdBuffer.addToOperateBuffer(thisNode.getContext() + " = load i32, i32* " + right.getContext());
                 stack.push(thisNode);
             } else stack.push(right);
         }
@@ -352,8 +348,7 @@ public class myListener extends grammerBaseListener {
             nodeInStack thisNode = new nodeInStack("", IS_VAL, -1, false);
             stack.push(thisNode);
         }
-        BasicLlvmPrinter.align();
-        System.out.println(t);
+        cmdBuffer.addToOperateBuffer(t.toString());
     }
 
     @Override
@@ -366,14 +361,14 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitSingle(grammerParser.SingleContext ctx) {
         String newName = ctx.getChild(0).toString();
-        varsManager.addVar(newName, top_var_del_type, registerManager);
+        varsManager.addVar(newName, top_var_del_type, registerManager, cmdBuffer);
     }
 
     @Override
     public void exitInitial(grammerParser.InitialContext ctx) {
         String newName = ctx.getChild(0).toString();
         nodeInStack right = stack.pop();
-        varsManager.addVar(newName, top_var_del_type, registerManager, right);
+        varsManager.addVar(newName, top_var_del_type, registerManager, right, cmdBuffer);
     }
 
     @Override
@@ -395,13 +390,12 @@ public class myListener extends grammerBaseListener {
     public void exitFuncRParams(grammerParser.FuncRParamsContext ctx) {
     }
 
-
     @Override
     public void enterWhileState(grammerParser.WhileStateContext ctx) {
         blockManager.enterWhileBlock(registerManager);
         WhileBlockInfo thisBlockInfo = blockManager.getCurrentWhileInfo();
-        BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode());
-        System.out.println(thisBlockInfo.getWhileStateCode().substring(1) + ":");
+        BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode(), cmdBuffer);
+        cmdBuffer.addToOperateBuffer(thisBlockInfo.getWhileStateCode().substring(1) + ":");
     }
 
     @Override
@@ -410,24 +404,24 @@ public class myListener extends grammerBaseListener {
         WhileBlockInfo thisBlockInfo = blockManager.getCurrentWhileInfo();
         thisBlockInfo.setCondRegName(right.getContext());
         BasicLlvmPrinter.printBr(thisBlockInfo.getCondRegName(), thisBlockInfo.getWhileBlockCode(),
-                thisBlockInfo.getNextBlockCode());
-        System.out.println(thisBlockInfo.getWhileBlockCode().substring(1) + ":");
+                thisBlockInfo.getNextBlockCode(), cmdBuffer);
+        cmdBuffer.addToOperateBuffer(thisBlockInfo.getWhileBlockCode().substring(1) + ":");
     }
 
     @Override
     public void exitWhile(grammerParser.WhileContext ctx) {
         WhileBlockInfo thisBlockInfo = (WhileBlockInfo) blockManager.exitCurrentBlock();
-        BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode());
-        System.out.println(thisBlockInfo.getNextBlockCode().substring(1) + ":");
+        BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode(), cmdBuffer);
+        cmdBuffer.addToOperateBuffer(thisBlockInfo.getNextBlockCode().substring(1) + ":");
     }
 
     @Override
     public void exitContinue(grammerParser.ContinueContext ctx) {
-        BasicLlvmPrinter.printBr(blockManager.getCurrentWhileInfo().getWhileStateCode());
+        BasicLlvmPrinter.printBr(blockManager.getCurrentWhileInfo().getWhileStateCode(), cmdBuffer);
     }
 
     @Override
     public void exitBreak(grammerParser.BreakContext ctx) {
-        BasicLlvmPrinter.printBr(blockManager.getCurrentWhileInfo().getNextBlockCode());
+        BasicLlvmPrinter.printBr(blockManager.getCurrentWhileInfo().getNextBlockCode(), cmdBuffer);
     }
 }

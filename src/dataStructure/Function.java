@@ -1,6 +1,6 @@
 package dataStructure;
 
-public class Function {
+public class  Function {
     String name;
     String type;
     int paramNum;

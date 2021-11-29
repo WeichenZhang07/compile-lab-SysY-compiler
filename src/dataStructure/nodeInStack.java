@@ -11,7 +11,6 @@ public class nodeInStack {
         isConst = false;
     }
 
-
     public nodeInStack(String context, int type, int varType, boolean isConst) {
         this.context = context;
         this.type = type;

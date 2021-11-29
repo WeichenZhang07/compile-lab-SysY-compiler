@@ -7,16 +7,16 @@ public class BasicLlvmPrinter {
 
     public static final int I1 = 0, I32 = 1;
 
-    public static int zext(nodeInStack a, nodeInStack b, RegisterManager reg) {
+    public static int zext(nodeInStack a, nodeInStack b, RegisterManager reg, llvmCmdBuffer buffer) {
         if (a.getVarType() == b.getVarType()) {
             return 0;
         }
         String regCode = reg.allocateTemperSpace();
         if (a.getVarType() < b.getVarType()) {
-            System.out.println(regCode + " = zext i1 " + a.getContext() +
+            buffer.addToOperateBuffer(regCode + " = zext i1 " + a.getContext() +
                     "to i32");
         } else if (a.getVarType() > b.getVarType()) {
-            System.out.println(regCode + " = zext i1 " + b.getContext() +
+            buffer.addToOperateBuffer(regCode + " = zext i1 " + b.getContext() +
                     "to i32");
         }
         a.setVarType(I32);
@@ -28,12 +28,11 @@ public class BasicLlvmPrinter {
         System.out.print("   ");
     }
 
-    public static void printBinaryOp(String var1, String var2, String register, String operator) {
-        align();
-        System.out.println(register + " = " + operator + " i32 " + var1 + " , " + var2);
+    public static void printBinaryOp(String var1, String var2, String register, String operator, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer(register + " = " + operator + " i32 " + var1 + " , " + var2);
     }
 
-    public static void printIcmp(String var1, String var2, String register, String method) {
+    public static void printIcmp(String var1, String var2, String register, String method, llvmCmdBuffer buffer) {
         String cd;
         switch (method) {
             case ("<") -> {
@@ -55,17 +54,14 @@ public class BasicLlvmPrinter {
                 cd = "";
             }
         }
-        align();
-        System.out.println(register + " = icmp " + cd + " i32 " + var1 + " , " + var2);
+        buffer.addToOperateBuffer(register + " = icmp " + cd + " i32 " + var1 + " , " + var2);
     }
 
-    public static void printBr(String cond, String ifTrue, String ifFalse) {
-        align();
-        System.out.println("br i1 " + cond + ", label " + ifTrue + ", label " + ifFalse);
+    public static void printBr(String cond, String ifTrue, String ifFalse, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer("br i1 " + cond + ", label " + ifTrue + ", label " + ifFalse);
     }
 
-    public static void printBr(String dest) {
-        align();
-        System.out.println("br label " + dest);
+    public static void printBr(String dest, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer("br label " + dest);
     }
 }

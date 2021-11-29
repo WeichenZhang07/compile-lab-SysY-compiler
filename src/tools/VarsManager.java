@@ -41,7 +41,7 @@ public class VarsManager {
         return localMapStack.peek().get(VarName) != null;
     }
 
-    public String addVar(String VarName, String varType, RegisterManager reg) {
+    public String addVar(String VarName, String varType, RegisterManager reg, llvmCmdBuffer buffer) {
         if (this.checkVarConflict(VarName)) {
             System.err.println("变量定义冲突！\n");
             System.exit(5);
@@ -52,8 +52,7 @@ public class VarsManager {
             if (localMapStack.size() > 1) {
                 newSpace = reg.allocateVar();
                 newVar = new Var(VarName, varType, newSpace);
-                BasicLlvmPrinter.align();
-                System.out.println(newVar.getRegisCode() + " = " + "alloca " + "i32");
+                buffer.addToAllocateBuffer(newVar.getRegisCode() + " = " + "alloca " + "i32");
             } else {
                 System.out.println("@" + VarName + " = " + "dso_local global i32 0");
                 newSpace = "@" + VarName;
@@ -64,11 +63,10 @@ public class VarsManager {
         }
     }
 
-    public String addVar(String VarName, String varType, RegisterManager reg, nodeInStack initValue) {
+    public String addVar(String VarName, String varType, RegisterManager reg, nodeInStack initValue, llvmCmdBuffer buffer) {
         if (localMapStack.size() > 1) {
-            String thisRegCode = addVar(VarName, varType, reg);
-            BasicLlvmPrinter.align();
-            System.out.println("store i32 " + initValue.getContext() + "," + "i32* " + thisRegCode);
+            String thisRegCode = addVar(VarName, varType, reg, buffer);
+            buffer.addToOperateBuffer("store i32 " + initValue.getContext() + "," + "i32* " + thisRegCode);
             return thisRegCode;
         } else {
             if (this.checkVarConflict(VarName)) {
