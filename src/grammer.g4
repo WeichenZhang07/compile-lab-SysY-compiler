@@ -16,8 +16,7 @@ constExp: addexp;
 
 varDecl : Btype varDef (',' varDef)* ';';
 varDef : Ident # single
-        | Ident '=' initVal #initial
-        ;
+        | Ident '=' initVal #initial;
 initVal : exp;
 funcDef : funcType Ident '(' ')' block;
 funcType : 'int';

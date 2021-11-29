@@ -1,6 +1,6 @@
-package dataStructure;
+package dataStructure.VarType;
 
-public class  Function {
+public class  Function extends VarType{
     String name;
     String type;
     int paramNum;
@@ -8,6 +8,7 @@ public class  Function {
 
     public Function(String name, String type, int paramNum,
                     String[] paramsType) {
+        super();
         this.name = name;
         this.type = type;
         this.paramNum = paramNum;

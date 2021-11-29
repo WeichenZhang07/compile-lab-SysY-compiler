@@ -13,7 +13,8 @@ public class Test {
                     declare i32 @getint()
                     declare void @putint(i32)
                     declare void @putch(i32)
-                    declare i32 @getch()""");
+                    declare i32 @getch()
+                    declare void @memset(i32*, i32, i32)""");
             //create lexer and parse and reallocate Error listeners
             CharStream input = CharStreams.fromFileName(args[0]);
             grammerLexer lexer = new grammerLexer(input);

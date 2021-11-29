@@ -1,10 +1,11 @@
 package dataStructure;
+import dataStructure.VarType.VarType;
 
 public class Var {
     String name; //变量名
     String type; //变量类型
     String constContent; //常值变量的值
-    Function funcInfo; //函数变量详细信息
+    VarType VarInfo; //函数变量详细信息
     String regisCode;
     boolean isConst;
 
@@ -26,12 +27,12 @@ public class Var {
         this.constContent = constContent;
     }
 
-    public Var(String name, String type, String regisCode, Function funcInfo) {
+    public Var(String name, String type, String regisCode, VarType funcInfo) {
         super();
         this.name = name;
         this.type = type;
         this.regisCode = regisCode;
-        this.funcInfo = funcInfo;
+        this.VarInfo = funcInfo;
     }
 
     public String getName() {
@@ -58,12 +59,8 @@ public class Var {
         this.constContent = constContent;
     }
 
-    public Function getFuncInfo() {
-        return funcInfo;
-    }
-
-    public void setFuncInfo(Function funcInfo) {
-        this.funcInfo = funcInfo;
+    public VarType getInfo() {
+        return VarInfo;
     }
 
     public String getRegisCode() {

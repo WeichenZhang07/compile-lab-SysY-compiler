@@ -5,7 +5,7 @@
       <webServer id="6c6a8e41-abfd-4325-b039-6c23088fdfa8" name="aliyun">
         <fileTransfer accessType="SFTP" host="39.106.181.163" port="22" sshConfigId="9d2a79ec-f535-4ae8-a0f0-3ef03a607640" sshConfig="root@39.106.181.163:22 password">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>

@@ -1,6 +1,6 @@
 package tools;
 
-import dataStructure.Function;
+import dataStructure.VarType.Function;
 import dataStructure.Var;
 
 import java.util.HashMap;
