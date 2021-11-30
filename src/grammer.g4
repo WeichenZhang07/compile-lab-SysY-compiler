@@ -10,14 +10,17 @@ COMMENT :'/*' .*? '*/' -> skip;
 decl: constDecl|varDecl;
 constDecl: 'const' Btype constDef (',' constDef)* ';';
 Btype : 'int';
-constDef : Ident '=' constInitVal;
-constInitVal : constExp;
+constDef : Ident ('[' constExp ']')* '=' constInitVal;
+constInitVal : constExp #singleConstInitVal
+              |'{' (constInitVal (',' constInitVal)*)? '}'
+              # arrarConstInitVal;
 constExp: addexp;
 
 varDecl : Btype varDef (',' varDef)* ';';
 varDef : Ident # single
         | Ident '=' initVal #initial;
-initVal : exp;
+initVal : exp #singleInitVal
+        | '{' (initVal (',' initVal)*)? '}' #arrayInitVal;
 funcDef : funcType Ident '(' ')' block;
 funcType : 'int';
 Ident : NoneDigit ( NoneDigit | Digit )*;
@@ -35,8 +38,21 @@ stmt : 'return' exp ';' # return |
         'continue' ';'#continue|
         'break' ';'#break|
         exp? ';' #singleExp;
-lval : Ident;
-
+lval : Ident ('[' exp ']')*;
+cond: lOrExp;
+exp : addexp;
+addexp : mulexp # singleAddExp| addexp('+'|'-') mulexp # multipleAddExp;
+mulexp : unaryExp # singleMulExp| mulexp('*'|'/'|'%') unaryExp # multipleMulExp;
+relExp : addexp # singleRelExp|
+        relExp('<'|'>'|'<='|'>=') addexp # multipleRelExp;
+eqExp : relExp # singleEqExp | eqExp('=='|'!=') relExp #multipleEqExp;
+lAndExp:eqExp # singleLAndExp|lAndExp '&&'eqExp # multipleLAndExp;
+lOrExp: lAndExp # singleLOrExp |lOrExp'||'lAndExp # multipleLOrExp;
+unaryOp: '+'|'-'|'!';
+unaryExp : primaryExp # pri| Ident '(' funcRParams? ')' # func
+            |unaryOp unaryExp # unary;
+funcRParams : exp (',' exp)*;
+primaryExp: '(' exp ')'| number|lval;
 
 
 number : Decimal_const #decimal | Octal_const# octal | Hexadecimal_const #hex;
@@ -56,19 +72,5 @@ NoneDigit : '_'|'a'| 'b'| 'c'| 'd'| 'e'| 'f'| 'g'| 'h'| 'i'| 'j'| 'k'| 'l'
                         | 'G'| 'H'| 'I'| 'J'| 'K'| 'L'| 'M'| 'N'| 'O'| 'P'
                         | 'Q'| 'R'| 'S'| 'T'| 'U'| 'V'| 'W'| 'X'| 'Y'| 'Z';
 
-cond: lOrExp;
-exp : addexp;
-addexp : mulexp # singleAddExp| addexp('+'|'-') mulexp # multipleAddExp;
-mulexp : unaryExp # singleMulExp| mulexp('*'|'/'|'%') unaryExp # multipleMulExp;
-relExp : addexp # singleRelExp|
-        relExp('<'|'>'|'<='|'>=') addexp # multipleRelExp;
-eqExp : relExp # singleEqExp | eqExp('=='|'!=') relExp #multipleEqExp;
-lAndExp:eqExp # singleLAndExp|lAndExp '&&'eqExp # multipleLAndExp;
-lOrExp: lAndExp # singleLOrExp |lOrExp'||'lAndExp # multipleLOrExp;
-unaryOp: '+'|'-'|'!';
-unaryExp : primaryExp # pri| Ident '(' funcRParams? ')' # func
-            |unaryOp unaryExp # unary;
-funcRParams : exp (',' exp)*;
-primaryExp: '(' exp ')'| number|lval;
 
 
