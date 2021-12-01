@@ -1,17 +1,18 @@
 package tools;
 
+import dataStructure.basicFinal;
 import dataStructure.nodeInStack;
 
-public class Calculator {
-    public static final int IS_NUM = 0, IS_VAL = 1;
+import java.util.ArrayList;
 
-    public static final int I1 = 0, I32 = 1;
+public class Calculator {
+
 
     public static nodeInStack compare(nodeInStack left, nodeInStack right, String operator, RegisterManager reg,
                                       llvmCmdBuffer buffer) {
         nodeInStack thisNode;
         int thisVarType = BasicLlvmPrinter.zext(left, right, reg, buffer);
-        if (right.getType() == IS_NUM && left.getType() == IS_NUM) {
+        if (right.getType() == basicFinal.IS_NUM && left.getType() == basicFinal.IS_NUM) {
             boolean r;
             switch (operator) {
                 case (">") -> {
@@ -34,16 +35,20 @@ public class Calculator {
                     r = Integer.parseInt(left.getContext()) ==
                             Integer.parseInt(right.getContext());
                 }
+                case ("!=") -> {
+                    r = Integer.parseInt(left.getContext()) !=
+                            Integer.parseInt(right.getContext());
+                }
                 default -> {
                     r = false;
                     System.exit(-1);
                 }
             }
-            thisNode = new nodeInStack(r ? "1" : "0", IS_NUM, I1, right.isConst() && left.isConst());
+            thisNode = new nodeInStack(r ? "1" : "0", basicFinal.IS_NUM, basicFinal.I1, right.isConst() && left.isConst());
         } //若能够在编译过程中得出条件运算结果
         else {
             String thisCode = reg.allocateTemperSpace();
-            thisNode = new nodeInStack(thisCode, IS_VAL, I1, right.isConst() && left.isConst());
+            thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, basicFinal.I1, right.isConst() && left.isConst());
             BasicLlvmPrinter.printIcmp(left.getContext(), right.getContext(), thisCode, operator, buffer);
         }
         return thisNode;
@@ -53,7 +58,7 @@ public class Calculator {
                                               llvmCmdBuffer buffer) {
         String operateCode;
         nodeInStack thisNode;
-        if (left.getType() == IS_NUM && right.getType() == IS_NUM) {
+        if (left.getType() == basicFinal.IS_NUM && right.getType() == basicFinal.IS_NUM) {
             int leftNum = Integer.parseInt(left.getContext()), rightNum = Integer.parseInt(right.getContext());
             int result = switch (operator) {
                 case "+" -> leftNum + rightNum;
@@ -63,7 +68,8 @@ public class Calculator {
                 case "%" -> leftNum % rightNum;
                 default -> 0;
             };
-            thisNode = new nodeInStack(Integer.toString(result), IS_NUM, I32, right.isConst() && left.isConst());
+            thisNode = new nodeInStack(Integer.toString(result), basicFinal.IS_NUM, basicFinal.I32,
+                    right.isConst() && left.isConst());
         } else {
             String newCode = reg.allocateTemperSpace();
             operateCode = switch (operator) {
@@ -75,49 +81,105 @@ public class Calculator {
                 default -> null;
             };
             BasicLlvmPrinter.printBinaryOp(left.getContext(), right.getContext(), newCode, operateCode, buffer);
-            thisNode = new nodeInStack(newCode, IS_VAL, I32, left.isConst() && right.isConst());
+            thisNode = new nodeInStack(newCode, basicFinal.IS_VAL, basicFinal.I32,
+                    left.isConst() && right.isConst());
         }
         return thisNode;
     }
 
-    public static nodeInStack unaryOperation(nodeInStack right, String operator, RegisterManager reg) {
+    public static nodeInStack unaryOperation(nodeInStack right, String operator, RegisterManager reg,
+                                             llvmCmdBuffer buffer) {
         nodeInStack thisNode = right;
-        if (right.getType() != IS_VAL) {
+        if (right.getType() != basicFinal.IS_VAL) {
             int thisValue = Integer.parseInt(right.getContext());
             if (operator.equals("-")) {
-                thisNode = new nodeInStack(Integer.toString(-thisValue), IS_NUM, right.getVarType(), right.isConst());
+                thisNode = new nodeInStack(Integer.toString(-thisValue), basicFinal.IS_NUM, right.getVarType(), right.isConst());
             } else if (operator.equals("!")) {
-                thisNode = new nodeInStack(Integer.toString(thisValue == 0 ? 1 : 0), IS_NUM, I1, right.isConst());
+                thisNode = new nodeInStack(Integer.toString(thisValue == 0 ? 1 : 0), basicFinal.IS_NUM, basicFinal.I1, right.isConst());
             } else {
-                thisNode = new nodeInStack(Integer.toString(thisValue), IS_NUM, right.getVarType(), right.isConst());
+                thisNode = new nodeInStack(Integer.toString(thisValue), basicFinal.IS_NUM, right.getVarType(), right.isConst());
             }
 
         } else {
             String tmp = "";
             if (operator.equals("-")) {
-                if (right.getVarType() != I32) {
+                if (right.getVarType() != basicFinal.I32) {
                     String thisCode = reg.allocateTemperSpace();
-                    BasicLlvmPrinter.align();
-                    System.out.println(thisCode + " = zext i1 " + right.getContext() + " to i32");
-                    right.setVarType(I32);
+                    buffer.addToOperateBuffer(thisCode + " = zext i1 " + right.getContext() + " to i32");
+                    right.setVarType(basicFinal.I32);
                     right.setContext(thisCode);
                 }
                 String thisCode = reg.allocateTemperSpace();
                 tmp += (thisCode + " = " + "sub " + "i32 0, " + right.getContext());
                 BasicLlvmPrinter.align();
                 System.out.println(tmp);
-                thisNode = new nodeInStack(thisCode, IS_VAL, right.getVarType(), right.isConst());
+                thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, right.getVarType(), right.isConst());
             } else if (operator.equals("!")) {
                 String thisCode = reg.allocateTemperSpace();
-                tmp += (thisCode + " = " + "icmp eq " + (right.getVarType() == I32 ? "i32 " : "i1 ") +
+                tmp += (thisCode + " = " + "icmp eq " + (right.getVarType() == basicFinal.I32 ? "i32 " : "i1 ") +
                         right.getContext() + ", " +
                         "0");
-                BasicLlvmPrinter.align();
-                System.out.println(tmp);
-                thisNode = new nodeInStack(thisCode, IS_VAL, I1, right.isConst());
+                buffer.addToOperateBuffer(tmp);
+                thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, basicFinal.I1, right.isConst());
             }
 
         }
         return thisNode;
     }
+
+    public static nodeInStack logicalOperation(nodeInStack left, nodeInStack right, String operator,
+                                               RegisterManager reg, llvmCmdBuffer buffer) {
+        nodeInStack thisNode;
+        if (right.getVarType() == basicFinal.IS_NUM && left.getVarType() == basicFinal.IS_NUM) {
+            boolean r = false;
+            switch (operator) {
+                case ("&&") -> {
+                    r = Integer.parseInt(left.getContext()) != 0 && Integer.parseInt(right.getContext()) != 0;
+                }
+                case ("||") -> {
+                    r = Integer.parseInt(left.getContext()) != 0 || Integer.parseInt(right.getContext()) != 0;
+                }
+                default -> {
+                    System.exit(-1);
+                }
+            }
+            thisNode = new nodeInStack(r ? "1" : "0", basicFinal.IS_NUM, basicFinal.I1,
+                    left.isConst() && right.isConst());
+        } else {
+            String op = switch (operator) {
+                case ("&&") -> "and";
+                case ("||") -> "or";
+                default -> "error";
+            };
+            String thisReg = reg.allocateTemperSpace();
+            thisNode = new nodeInStack(thisReg, basicFinal.IS_VAL, basicFinal.I1,
+                    left.isConst() && right.isConst());
+            BasicLlvmPrinter.printLogic(left.getContext(), right.getContext(), thisReg, op, buffer);
+
+        }
+        return thisNode;
+    }
+
+    public static nodeInStack FunctionCaller(String funcName, int retType, ArrayList<Integer> params, llvmCmdBuffer buffer,
+                                             RegisterManager reg) {
+        String retTypeString = basicFinal.typeMap.get(retType);
+        nodeInStack thisNode;
+        StringBuilder cmd = new StringBuilder();
+        String thisRegSpace = "";
+        if (retType != basicFinal.VOID) {
+            thisRegSpace = reg.allocateTemperSpace();
+            cmd = new StringBuilder(thisRegSpace + " = ");
+        }
+        cmd.append("call ").append(retTypeString).append(" @ ").append(funcName).append("( ");
+        int len = params.size();
+        for (int i = 0; i < len; i++) {
+            cmd.append(basicFinal.typeMap.get(params.get(i)));
+            if (i < len - 1) cmd.append(", ");
+        }
+        cmd.append(" )");
+        buffer.addToOperateBuffer(cmd.toString());
+        thisNode = new nodeInStack(thisRegSpace, basicFinal.IS_VAL, retType, false);
+        return thisNode;
+    }
+
 }

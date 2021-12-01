@@ -1,6 +1,6 @@
 grammar grammer;
 
-compUnit : decl* funcDef;
+compUnit : (decl| funcDef)+;
 //ignore \t\r\n
 //skip notes
 SPACE: ('\t'|'\n'|'\r'|' ') -> channel(HIDDEN);
@@ -10,19 +10,22 @@ COMMENT :'/*' .*? '*/' -> skip;
 decl: constDecl|varDecl;
 constDecl: 'const' Btype constDef (',' constDef)* ';';
 Btype : 'int';
-constDef : Ident ('[' constExp ']')* '=' constInitVal;
+constDef : Ident constScripts* '=' constInitVal;
 constInitVal : constExp #singleConstInitVal
-              |'{' (constInitVal (',' constInitVal)*)? '}'
-              # arrarConstInitVal;
+              |'{' (constInitVal (',' constInitVal)*)? '}' # arrarConstInitVal;
 constExp: addexp;
 
+constScripts :'[' constExp ']';
+scripts : '[' exp ']';
 varDecl : Btype varDef (',' varDef)* ';';
-varDef : Ident # single
-        | Ident '=' initVal #initial;
+varDef : Ident scripts* # single
+        | Ident scripts* '=' initVal #initial;
 initVal : exp #singleInitVal
         | '{' (initVal (',' initVal)*)? '}' #arrayInitVal;
-funcDef : funcType Ident '(' ')' block;
-funcType : 'int';
+funcDef : funcType Ident '('(funcFParams)* ')' block;
+funcType : 'int'|'void';
+funcFParams : funcFParam (',' funcFParam)*;
+funcFParam : Btype Ident ('[' ']' ('['exp']')*)?;
 Ident : NoneDigit ( NoneDigit | Digit )*;
 block : '{' blockItem* '}';
 blockItem: decl|stmt;
@@ -30,7 +33,7 @@ ifState :'if' '(' cond ')';
 whileState : 'while' '(' cond ')';
 ifBlock : stmt;
 elseBlock : 'else' stmt;
-stmt : 'return' exp ';' # return |
+stmt : 'return' (exp)? ';' # return |
         lval '=' exp ';'# assignment|
         ifState ifBlock elseBlock? # if|
         whileState stmt #while |
@@ -38,7 +41,7 @@ stmt : 'return' exp ';' # return |
         'continue' ';'#continue|
         'break' ';'#break|
         exp? ';' #singleExp;
-lval : Ident ('[' exp ']')*;
+lval : Ident scripts*;
 cond: lOrExp;
 exp : addexp;
 addexp : mulexp # singleAddExp| addexp('+'|'-') mulexp # multipleAddExp;
@@ -59,18 +62,12 @@ number : Decimal_const #decimal | Octal_const# octal | Hexadecimal_const #hex;
 Decimal_const : Nonzero_digit Digit*;
 Octal_const : '0' [0-7]*;
 Hexadecimal_const :('0x'|'0X') Hexadecimal_digit*;
-Nonzero_digit : '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9';
-Octal_digit : '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7';
+Nonzero_digit : [1-9];
+Octal_digit : [0-7];
 Digit : '0'|Nonzero_digit;
-Hexadecimal_digit:'0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-                                        | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
-                                        | 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+Hexadecimal_digit:[0-9]|[a-fA-F];
 
-NoneDigit : '_'|'a'| 'b'| 'c'| 'd'| 'e'| 'f'| 'g'| 'h'| 'i'| 'j'| 'k'| 'l'
-                        | 'm'| 'n'| 'o'| 'p'| 'q'| 'r'| 's'| 't'| 'u'| 'v'
-                        | 'w'| 'x'| 'y'| 'z'| 'A'| 'B'| 'C'| 'D'| 'E'| 'F'
-                        | 'G'| 'H'| 'I'| 'J'| 'K'| 'L'| 'M'| 'N'| 'O'| 'P'
-                        | 'Q'| 'R'| 'S'| 'T'| 'U'| 'V'| 'W'| 'X'| 'Y'| 'Z';
+NoneDigit : '_'|[a-zA-Z];
 
 
 

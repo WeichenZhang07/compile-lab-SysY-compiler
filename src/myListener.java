@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import gen.grammerBaseListener;
 import tools.*;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 
@@ -225,20 +226,8 @@ public class myListener extends grammerBaseListener {
         String opC = ctx.getChild(1).toString();
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
         nodeInStack thisNode;
-        String operation = opC.equals("==") ? "eq" : "ne";
-
-        if (right.getType() == dataStructure.basicFinal.IS_NUM && left.getType() == dataStructure.basicFinal.IS_NUM) {
-            int result = right.getContext().equals(left.getContext()) ? 1 : 0;
-            thisNode = new nodeInStack(Integer.toString(result), dataStructure.basicFinal.IS_NUM, thisVarType,
-                    right.isConst() && left.isConst());
-        } else {
-            String thisCode = registerManager.allocateTemperSpace();
-            cmdBuffer.addToOperateBuffer(thisCode + " = icmp " + operation + " i32 " + left.getContext() + ", " +
-                    right.getContext());
-            thisNode = new nodeInStack(thisCode, dataStructure.basicFinal.IS_VAL, dataStructure.basicFinal.I1, left.isConst() && right.isConst());
-        }
+        thisNode = Calculator.BinaryOperation(left, right, opC, registerManager, cmdBuffer);
         stack.push(thisNode);
     }
 
@@ -246,49 +235,25 @@ public class myListener extends grammerBaseListener {
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
-        nodeInStack thisNode;
-
-        if (right.getType() != dataStructure.basicFinal.IS_VAL && left.getType() != dataStructure.basicFinal.IS_VAL) {
-            int result = Integer.parseInt(right.getContext()) != 0
-                    && Integer.parseInt(left.getContext()) != 1 ? 1 : 0;
-            thisNode = new nodeInStack(Integer.toString(result), dataStructure.basicFinal.IS_NUM, dataStructure.basicFinal.I1, left.isConst() && right.isConst());
-        } else {
-            String thisCode = registerManager.allocateTemperSpace();
-            cmdBuffer.addToOperateBuffer(thisCode + " = and " + " i1 " + left.getContext() + ", " +
-                    right.getContext());
-            thisNode = new nodeInStack(thisCode, dataStructure.basicFinal.IS_VAL, dataStructure.basicFinal.I1, left.isConst() && right.isConst());
-        }
-        stack.push(thisNode);
+        String operator = "&&";
+        stack.push(Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer));
     }
 
     @Override
     public void exitMultipleLOrExp(grammerParser.MultipleLOrExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        int thisVarType = BasicLlvmPrinter.zext(left, right, registerManager, cmdBuffer);
-        nodeInStack thisNode;
-
-        if (right.getType() != dataStructure.basicFinal.IS_VAL && left.getType() != dataStructure.basicFinal.IS_VAL) {
-            int result = Integer.parseInt(right.getContext()) != 0
-                    || Integer.parseInt(left.getContext()) != 0 ? 1 : 0;
-            thisNode = new nodeInStack(Integer.toString(result), dataStructure.basicFinal.IS_NUM, dataStructure.basicFinal.I1, left.isConst() && right.isConst());
-        } else {
-            String thisCode = registerManager.allocateTemperSpace();
-            cmdBuffer.addToOperateBuffer(thisCode + " = or " + " i1 " + left.getContext() + ", " +
-                    right.getContext());
-            thisNode = new nodeInStack(thisCode, dataStructure.basicFinal.IS_VAL, dataStructure.basicFinal.I1, left.isConst() && right.isConst());
-        }
-        stack.push(thisNode);
+        String operator = "||";
+        stack.push(Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer));
     }
 
     @Override
     public void exitPrimaryExp(grammerParser.PrimaryExpContext ctx) {
         if (ctx.getChild(0) instanceof grammerParser.LvalContext) {
             nodeInStack right = stack.pop();
-            if (right.getType() == dataStructure.basicFinal.IS_VAL) {
+            if (right.getType() == basicFinal.IS_VAL) {
                 String thisCode = registerManager.allocateTemperSpace();
-                nodeInStack thisNode = new nodeInStack(thisCode, dataStructure.basicFinal.IS_VAL, dataStructure.basicFinal.I32, right.isConst());
+                nodeInStack thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, basicFinal.I32, right.isConst());
                 cmdBuffer.addToOperateBuffer(thisNode.getContext() + " = load i32, i32* " + right.getContext());
                 stack.push(thisNode);
             } else stack.push(right);
@@ -308,54 +273,38 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitFunc(grammerParser.FuncContext ctx) {
         int paramNum;
+        Function thisFunc;
         String funcName = ctx.getChild(0).toString();
         if (varsManager.consultVar(funcName) == null ||
-                !varsManager.consultVar(funcName).getType().equals("function"))//处理未定义函数
+                varsManager.consultVar(funcName).getType() != basicFinal.FUNCTION)//处理未定义函数
             System.exit(8);
-        if(varsManager.consultVar(funcName).getType()!=basicFinal.FUNCTION)
-        Function thisFunc = (Function) varsManager.consultVar(funcName).getInfo();
-        StringBuilder t = new StringBuilder("call ");
-        switch (thisFunc.getType()) {
-            case ("void") -> {
-                t.append("void ");
-            }
-            case ("int") -> {
-                t.append("i32 ");
-            }
+        if (varsManager.consultVar(funcName).getType() == basicFinal.FUNCTION) {
+            assert (varsManager.consultVar(funcName).getInfo() instanceof Function);
+            thisFunc = (Function) varsManager.consultVar(funcName).getInfo();
+        } else {
+            System.exit(-1);
+            return;
         }
-        t.append("@").append(funcName).append(" (");
+
         paramNum = ctx.getChildCount() < 4 ? 0 :
                 ((ctx.getChild(2).getChildCount() - 1) / 2 + 1);
         if (thisFunc.getParamNum() != paramNum) System.exit(9);
-        Stack<nodeInStack> reversor = new Stack<>();
-        for (int i = 0; i < paramNum; i++) {
-            reversor.push(stack.pop());
+        ArrayList<Integer> params = new ArrayList<>();
+        for (int i = paramNum - 1; i >= 0; i--) {
+            params.add(paramNum - 1 - i, Integer.parseInt(stack.pop().getContext()));
         }
-        for (int i = 0; i < paramNum; i++) {
-            t.append("i32 ").append(reversor.pop().getContext());
-            if (i < paramNum - 1) {
-                t.append(",");
-            }
-        }
-        t.append(")");
-        if (thisFunc.getType().equals("int")) {
-            String thisCode = registerManager.allocateTemperSpace();
-            t.insert(0, thisCode + " = ");
-            nodeInStack thisNode = new nodeInStack(thisCode, dataStructure.basicFinal.IS_VAL, dataStructure.basicFinal.I32, false);
+        nodeInStack thisNode = Calculator.FunctionCaller(funcName, thisFunc.getType(), params, cmdBuffer, registerManager);
+        if (thisFunc.getType() != basicFinal.VOID) {
             stack.push(thisNode);
+        }
 
-        } else {
-            nodeInStack thisNode = new nodeInStack("", dataStructure.basicFinal.IS_VAL, -1, false);
-            stack.push(thisNode);
-        }
-        cmdBuffer.addToOperateBuffer(t.toString());
     }
 
     @Override
     public void exitUnary(grammerParser.UnaryContext ctx) {
         nodeInStack right = stack.pop();
         String operator = ctx.getChild(0).toString();
-        stack.push(Calculator.unaryOperation(right, operator, registerManager));
+        stack.push(Calculator.unaryOperation(right, operator, registerManager, cmdBuffer));
     }
 
     @Override

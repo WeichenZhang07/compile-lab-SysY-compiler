@@ -25,9 +25,7 @@ public class Test {
             parser.removeParseListeners();
             parser.addErrorListener(new parserErrorListener());
             grammerParser.CompUnitContext tree = parser.compUnit();
-
             ParseTreeWalker walker = new ParseTreeWalker();
-
             walker.walk(new myListener(), tree);
             System.out.println();
         } catch (IOException e) {

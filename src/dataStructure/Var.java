@@ -3,7 +3,7 @@ import dataStructure.VarType.VarType;
 
 public class Var {
     String name; //变量名
-    String type; //变量类型
+    int type; //变量类型
     String constContent; //常值变量的值
     VarType VarInfo; //函数变量详细信息
     String regisCode;
@@ -13,7 +13,7 @@ public class Var {
 
     }
 
-    public Var(String name, String type, String regisCode) {
+    public Var(String name, int type, String regisCode) {
         this();
         this.name = name;
         this.type = type;
@@ -21,18 +21,18 @@ public class Var {
         this.isConst = false;
     }
 
-    public Var(String name, String type, String regisCode, String constContent) {
+    public Var(String name, int type, String regisCode, String constContent) {
         this(name, type, regisCode);
         this.isConst = true;
         this.constContent = constContent;
     }
 
-    public Var(String name, String type, String regisCode, VarType funcInfo) {
+    public Var(String name, int type, String regisCode, VarType VarInfo) {
         super();
         this.name = name;
         this.type = type;
         this.regisCode = regisCode;
-        this.VarInfo = funcInfo;
+        this.VarInfo = VarInfo;
     }
 
     public String getName() {
@@ -43,11 +43,11 @@ public class Var {
         this.name = name;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(int type) {
         this.type = type;
     }
 

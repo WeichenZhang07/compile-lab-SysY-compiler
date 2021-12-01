@@ -1,12 +1,11 @@
 package tools;
 
+import dataStructure.basicFinal;
 import dataStructure.nodeInStack;
 
+import java.util.ArrayList;
+
 public class BasicLlvmPrinter {
-    public static final int IS_NUM = 0, IS_VAL = 1;
-
-    public static final int I1 = 0, I32 = 1;
-
     public static int zext(nodeInStack a, nodeInStack b, RegisterManager reg, llvmCmdBuffer buffer) {
         if (a.getVarType() == b.getVarType()) {
             return 0;
@@ -19,7 +18,7 @@ public class BasicLlvmPrinter {
             buffer.addToOperateBuffer(regCode + " = zext i1 " + b.getContext() +
                     "to i32");
         }
-        a.setVarType(I32);
+        a.setVarType(basicFinal.I32);
         a.setContext(regCode);
         return Integer.max(a.getVarType(), b.getVarType());
     }
@@ -50,6 +49,9 @@ public class BasicLlvmPrinter {
             case ("==") -> {
                 cd = "eq";
             }
+            case ("!=") -> {
+                cd = "ne";
+            }
             default -> {
                 cd = "";
             }
@@ -63,5 +65,9 @@ public class BasicLlvmPrinter {
 
     public static void printBr(String dest, llvmCmdBuffer buffer) {
         buffer.addToOperateBuffer("br label " + dest);
+    }
+
+    public static void printLogic(String var1, String var2, String register, String operation, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer(register + " = " + operation + " i1 " + var1 + ", " + var2);
     }
 }

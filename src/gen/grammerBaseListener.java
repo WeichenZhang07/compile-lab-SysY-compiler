@@ -64,13 +64,25 @@ public class grammerBaseListener implements grammerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterConstInitVal(grammerParser.ConstInitValContext ctx) { }
+	@Override public void enterSingleConstInitVal(grammerParser.SingleConstInitValContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitConstInitVal(grammerParser.ConstInitValContext ctx) { }
+	@Override public void exitSingleConstInitVal(grammerParser.SingleConstInitValContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -83,6 +95,30 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitConstExp(grammerParser.ConstExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterConstScripts(grammerParser.ConstScriptsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitConstScripts(grammerParser.ConstScriptsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterScripts(grammerParser.ScriptsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitScripts(grammerParser.ScriptsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -124,13 +160,25 @@ public class grammerBaseListener implements grammerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterInitVal(grammerParser.InitValContext ctx) { }
+	@Override public void enterSingleInitVal(grammerParser.SingleInitValContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitInitVal(grammerParser.InitValContext ctx) { }
+	@Override public void exitSingleInitVal(grammerParser.SingleInitValContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArrayInitVal(grammerParser.ArrayInitValContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArrayInitVal(grammerParser.ArrayInitValContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -155,6 +203,30 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFuncType(grammerParser.FuncTypeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFuncFParams(grammerParser.FuncFParamsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFuncFParams(grammerParser.FuncFParamsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFuncFParam(grammerParser.FuncFParamContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFuncFParam(grammerParser.FuncFParamContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -335,42 +407,6 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLval(grammerParser.LvalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterDecimal(grammerParser.DecimalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDecimal(grammerParser.DecimalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOctal(grammerParser.OctalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOctal(grammerParser.OctalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterHex(grammerParser.HexContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitHex(grammerParser.HexContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -611,6 +647,42 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPrimaryExp(grammerParser.PrimaryExpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDecimal(grammerParser.DecimalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDecimal(grammerParser.DecimalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOctal(grammerParser.OctalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOctal(grammerParser.OctalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterHex(grammerParser.HexContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitHex(grammerParser.HexContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

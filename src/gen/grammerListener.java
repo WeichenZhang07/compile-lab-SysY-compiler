@@ -48,15 +48,29 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitConstDef(grammerParser.ConstDefContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link grammerParser#constInitVal}.
+	 * Enter a parse tree produced by the {@code singleConstInitVal}
+	 * labeled alternative in {@link grammerParser#constInitVal}.
 	 * @param ctx the parse tree
 	 */
-	void enterConstInitVal(grammerParser.ConstInitValContext ctx);
+	void enterSingleConstInitVal(grammerParser.SingleConstInitValContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link grammerParser#constInitVal}.
+	 * Exit a parse tree produced by the {@code singleConstInitVal}
+	 * labeled alternative in {@link grammerParser#constInitVal}.
 	 * @param ctx the parse tree
 	 */
-	void exitConstInitVal(grammerParser.ConstInitValContext ctx);
+	void exitSingleConstInitVal(grammerParser.SingleConstInitValContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code arrarConstInitVal}
+	 * labeled alternative in {@link grammerParser#constInitVal}.
+	 * @param ctx the parse tree
+	 */
+	void enterArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code arrarConstInitVal}
+	 * labeled alternative in {@link grammerParser#constInitVal}.
+	 * @param ctx the parse tree
+	 */
+	void exitArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#constExp}.
 	 * @param ctx the parse tree
@@ -67,6 +81,26 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConstExp(grammerParser.ConstExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#constScripts}.
+	 * @param ctx the parse tree
+	 */
+	void enterConstScripts(grammerParser.ConstScriptsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#constScripts}.
+	 * @param ctx the parse tree
+	 */
+	void exitConstScripts(grammerParser.ConstScriptsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#scripts}.
+	 * @param ctx the parse tree
+	 */
+	void enterScripts(grammerParser.ScriptsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#scripts}.
+	 * @param ctx the parse tree
+	 */
+	void exitScripts(grammerParser.ScriptsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#varDecl}.
 	 * @param ctx the parse tree
@@ -102,15 +136,29 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitInitial(grammerParser.InitialContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link grammerParser#initVal}.
+	 * Enter a parse tree produced by the {@code singleInitVal}
+	 * labeled alternative in {@link grammerParser#initVal}.
 	 * @param ctx the parse tree
 	 */
-	void enterInitVal(grammerParser.InitValContext ctx);
+	void enterSingleInitVal(grammerParser.SingleInitValContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link grammerParser#initVal}.
+	 * Exit a parse tree produced by the {@code singleInitVal}
+	 * labeled alternative in {@link grammerParser#initVal}.
 	 * @param ctx the parse tree
 	 */
-	void exitInitVal(grammerParser.InitValContext ctx);
+	void exitSingleInitVal(grammerParser.SingleInitValContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code arrayInitVal}
+	 * labeled alternative in {@link grammerParser#initVal}.
+	 * @param ctx the parse tree
+	 */
+	void enterArrayInitVal(grammerParser.ArrayInitValContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code arrayInitVal}
+	 * labeled alternative in {@link grammerParser#initVal}.
+	 * @param ctx the parse tree
+	 */
+	void exitArrayInitVal(grammerParser.ArrayInitValContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#funcDef}.
 	 * @param ctx the parse tree
@@ -131,6 +179,26 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFuncType(grammerParser.FuncTypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#funcFParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncFParams(grammerParser.FuncFParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#funcFParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncFParams(grammerParser.FuncFParamsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#funcFParam}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncFParam(grammerParser.FuncFParamContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#funcFParam}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncFParam(grammerParser.FuncFParamContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#block}.
 	 * @param ctx the parse tree
@@ -297,42 +365,6 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLval(grammerParser.LvalContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code decimal}
-	 * labeled alternative in {@link grammerParser#number}.
-	 * @param ctx the parse tree
-	 */
-	void enterDecimal(grammerParser.DecimalContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code decimal}
-	 * labeled alternative in {@link grammerParser#number}.
-	 * @param ctx the parse tree
-	 */
-	void exitDecimal(grammerParser.DecimalContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code octal}
-	 * labeled alternative in {@link grammerParser#number}.
-	 * @param ctx the parse tree
-	 */
-	void enterOctal(grammerParser.OctalContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code octal}
-	 * labeled alternative in {@link grammerParser#number}.
-	 * @param ctx the parse tree
-	 */
-	void exitOctal(grammerParser.OctalContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code hex}
-	 * labeled alternative in {@link grammerParser#number}.
-	 * @param ctx the parse tree
-	 */
-	void enterHex(grammerParser.HexContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code hex}
-	 * labeled alternative in {@link grammerParser#number}.
-	 * @param ctx the parse tree
-	 */
-	void exitHex(grammerParser.HexContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#cond}.
 	 * @param ctx the parse tree
@@ -563,4 +595,40 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrimaryExp(grammerParser.PrimaryExpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code decimal}
+	 * labeled alternative in {@link grammerParser#number}.
+	 * @param ctx the parse tree
+	 */
+	void enterDecimal(grammerParser.DecimalContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code decimal}
+	 * labeled alternative in {@link grammerParser#number}.
+	 * @param ctx the parse tree
+	 */
+	void exitDecimal(grammerParser.DecimalContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code octal}
+	 * labeled alternative in {@link grammerParser#number}.
+	 * @param ctx the parse tree
+	 */
+	void enterOctal(grammerParser.OctalContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code octal}
+	 * labeled alternative in {@link grammerParser#number}.
+	 * @param ctx the parse tree
+	 */
+	void exitOctal(grammerParser.OctalContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code hex}
+	 * labeled alternative in {@link grammerParser#number}.
+	 * @param ctx the parse tree
+	 */
+	void enterHex(grammerParser.HexContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code hex}
+	 * labeled alternative in {@link grammerParser#number}.
+	 * @param ctx the parse tree
+	 */
+	void exitHex(grammerParser.HexContext ctx);
 }

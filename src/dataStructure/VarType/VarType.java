@@ -1,4 +1,4 @@
 package dataStructure.VarType;
 
-public class VarType {
+public abstract class VarType {
 }

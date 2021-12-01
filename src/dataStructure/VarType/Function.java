@@ -1,12 +1,15 @@
 package dataStructure.VarType;
 
+import  dataStructure.basicFinal;
+import java.util.ArrayList;
+
 public class  Function extends VarType{
     String name;
-    String type;
+    int type;
     int paramNum;
     String[] paramsType;
 
-    public Function(String name, String type, int paramNum,
+    public Function(String name, int type, int paramNum,
                     String[] paramsType) {
         super();
         this.name = name;
@@ -23,11 +26,11 @@ public class  Function extends VarType{
         this.name = name;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(int type) {
         this.type = type;
     }
 
@@ -46,4 +49,6 @@ public class  Function extends VarType{
     public void setParamsType(String[] paramsType) {
         this.paramsType = paramsType;
     }
+
+
 }
