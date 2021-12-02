@@ -80,7 +80,7 @@ public class Calculator {
                 case "*" -> "mul nsw";
                 case "/" -> "sdiv";
                 case "%" -> "srem";
-                default -> null;
+                default -> operator;
             };
             BasicLlvmPrinter.printBinaryOp(left.getContext(), right.getContext(), newCode, operateCode, buffer);
             thisNode = new nodeInStack(newCode, basicFinal.IS_VAL, basicFinal.I32,
