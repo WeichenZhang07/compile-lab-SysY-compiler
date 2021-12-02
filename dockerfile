@@ -8,9 +8,7 @@ COPY ./ /app/
 # 编译程序
 WORKDIR /app/
 RUN mkdir out
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar -d ./out ./src/gen/*.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/dataStructure/*.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/dataStructure/block/*.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/dataStructure/varType/*.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/tools/*.java
-RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/*.java
+
+RUN javac -encoding utf-8 -cp :./antlr-4.9.2-complete.jar:./out -d ./out ./src/*.java ./src/dataStructure/*.java ./src/dataStructure/block/*.java ./src/dataStructure/VarType/*.java ./src/gen/*.java ./src/tools/*.java
+
+
