@@ -113,8 +113,7 @@ public class Calculator {
                 }
                 String thisCode = reg.allocateTemperSpace();
                 tmp += (thisCode + " = " + "sub " + "i32 0, " + right.getContext());
-                BasicLlvmPrinter.align();
-                System.out.println(tmp);
+                buffer.addToOperateBuffer(tmp);
                 thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, right.getVarType(), right.isConst());
             } else if (operator.equals("!")) {
                 String thisCode = reg.allocateTemperSpace();

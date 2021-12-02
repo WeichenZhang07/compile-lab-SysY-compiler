@@ -38,7 +38,7 @@ public class myListener extends grammerBaseListener {
 
     private void arrayScriptsManage(String newName, int dimension) {
         int[] dims = new int[dimension];
-        for (int i = 0; i < dimension; i++) {
+        for (int i = dimension-1; i >= 0; i--) {
             nodeInStack right = stack.pop();
             if (!right.isConst()) {
                 System.err.println("数组定义下标中存在无法在编译过程中确认的下标！");
@@ -120,7 +120,7 @@ public class myListener extends grammerBaseListener {
         ParseTree x = ctx.getChild(0);
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        if (left.getType() == dataStructure.basicFinal.IS_NUM) System.exit(7);
+        if (left.getType() == basicFinal.IS_NUM) System.exit(7);
         cmdBuffer.addToOperateBuffer("store i32 " + right.getContext() + ", i32* " + left.getContext());
 
     }
@@ -356,7 +356,7 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitUnary(grammerParser.UnaryContext ctx) {
         nodeInStack right = stack.pop();
-        String operator = ctx.getChild(0).toString();
+        String operator = ctx.getChild(0).getChild(0).toString();
         stack.push(Calculator.unaryOperation(right, operator, registerManager, cmdBuffer));
     }
 
