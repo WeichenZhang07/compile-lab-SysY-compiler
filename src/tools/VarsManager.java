@@ -24,6 +24,10 @@ public class VarsManager {
                 new Function("putch", basicFinal.VOID, new String[]{"int"})));
         globalMap.put("getch", new Var("getch", basicFinal.FUNCTION, null,
                 new Function("getch", basicFinal.I32, null)));
+        globalMap.put("getarray", new Var("getch", basicFinal.FUNCTION, null,
+                new Function("getch", basicFinal.I32, new String[]{"int*"})));
+        globalMap.put("putarray", new Var("getch", basicFinal.FUNCTION, null,
+                new Function("getch", basicFinal.VOID, new String[]{"int", "int*"})));
         globalMap.put("memset", new Var("memset", basicFinal.FUNCTION, null,
                 new Function("memset", basicFinal.VOID, new String[]{"int*", "int", "int"})));
         localMapStack.push(globalMap);
@@ -52,7 +56,7 @@ public class VarsManager {
             if (localMapStack.size() > 1) {
                 newSpace = reg.allocateVar();
                 newVar = new Var(VarName, varType, newSpace);
-                buffer.addToAllocateBuffer(newVar.getRegisCode() + " = " + "alloca " + "i32");
+                buffer.addToAllocateBuffer(newVar.getRegisCode() + " = " + "alloca " + "i32", true);
             } else {
                 System.out.println("@" + VarName + " = " + "dso_local global i32 0");
                 newSpace = "@" + VarName;
@@ -86,18 +90,17 @@ public class VarsManager {
         }
     }
 
-    public String addFunction(String FuncName, int retType, String[] params) {
+    public String addFunction(String FuncName, int retType, Function thisFunc) {
         if (consultVar(FuncName) != null) {
             System.err.println("自定义函数名与现有变量表冲突！");
             System.exit(5);
         }
-        Function funcInfo = new Function(FuncName, retType, params);
-        Var thisFunc = new Var(FuncName, basicFinal.FUNCTION, null, funcInfo);
-        localMapStack.peek().put(FuncName, thisFunc);
+        Var thisVar = new Var(FuncName, basicFinal.FUNCTION, null, thisFunc);
+        localMapStack.get(0).put(FuncName, thisVar);
         return "@" + FuncName;
     }
 
-    public String addArray(String ArrayName, int type, RegisterManager reg, llvmCmdBuffer buffer,
+    public String addArray(String ArrayName, int type, RegisterManager reg, llvmCmdBuffer buffer, boolean isInit,
                            int... dims) {
         Array thisArray = new Array(type, dims);
         int size = 1;
@@ -113,14 +116,15 @@ public class VarsManager {
             StringBuilder arrayInitial = new StringBuilder();
 
             arrayInitial.append("[ ").append(size).append(" x ").append(basicFinal.getStringTypeByInt(type)).append(" ]");
-            buffer.addToAllocateBuffer(thisPointer + " = " + "alloca " + arrayInitial + ", i32 " + size);
+            buffer.addToAllocateBuffer(thisPointer + " = " + "alloca " + arrayInitial + ", i32 " + size, true);
             localMapStack.peek().put(ArrayName, thisVar);
             return thisPointer;
         } else {
             thisPointer = "@" + ArrayName;
             thisVar = new Var(ArrayName, basicFinal.ARRAY, thisPointer, thisArray);
-            System.out.println(thisPointer + " = dso_local global " + "[ " + size + " x " + basicFinal.getStringTypeByInt(type)
-                    + " ] zeroinitializer, align 16");
+            System.out.print(thisPointer + " = dso_local global " + "[ " + size + " x " + basicFinal.getStringTypeByInt(type)
+                    + " ] ");
+            if (!isInit) System.out.println(" zeroinitializer, align 16");
         }
         localMapStack.peek().put(ArrayName, thisVar);
         return thisPointer;
@@ -139,22 +143,29 @@ public class VarsManager {
 
     public void ArrayInitializer(Var array, nodeInStack root, llvmCmdBuffer buffer,
                                  RegisterManager reg, VarsManager varsManager) {
-        if(!root.isConst() && localMapStack.size()==1){
+        if (!root.isConst() && localMapStack.size() == 1) {
             System.err.println("全局变量初始值必须为常量！");
             System.exit(13);
         }
         assert (array.getInfo() instanceof Array);
         Array arrayInfo = (Array) array.getInfo();
         int size = arrayInfo.getSize();
-        ArrayList<String> params = new ArrayList<>();
-        String thisRegSpace = reg.allocateTemperSpace();
-        BasicLlvmPrinter.printGEP("[" + ((Array) array.getInfo()).getSize() +
-                " x i32]", array.getRegisCode(), thisRegSpace, 0, buffer);
-        params.add(thisRegSpace);
-        params.add("0");
-        params.add(Integer.toString(size * 4));
-        if(localMapStack.size()>1) Calculator.FunctionCaller("memset", params, buffer, reg, varsManager);//全部初始化为0
-        arrayInitialWalker(root, array, arrayInfo.getDims(), new ArrayList<>(), reg, buffer);
+        if (localMapStack.size() > 1) {
+            ArrayList<String> params = new ArrayList<>();
+            String thisRegSpace = reg.allocateTemperSpace();
+            BasicLlvmPrinter.printGEP("[" + ((Array) array.getInfo()).getSize() +
+                    " x i32]", array.getRegisCode(), thisRegSpace, 0, buffer);
+            params.add(thisRegSpace);
+            params.add("0");
+            params.add(Integer.toString(size * 4));
+            if (localMapStack.size() > 1)
+                Calculator.FunctionCaller("memset", params, buffer, reg, varsManager);//全部初始化为0
+            arrayInitialWalker(root, array, arrayInfo.getDims(), new ArrayList<>(), reg, buffer);
+        } else {
+            System.out.print("[ ");
+            globalArrayInitialWalker(root, array, arrayInfo.getDims(), new ArrayList<>());
+            System.out.println("]");
+        }
 
 
     }
@@ -187,6 +198,58 @@ public class VarsManager {
         currentDims.remove(currentDim);
     }
 
+    private void globalArrayInitialWalker(nodeInStack thisNode, Var varInfo, ArrayList<Integer> dims
+            , ArrayList<Integer> currentDims) {
+        int count = thisNode.getChildCount();
+        int currentDim = currentDims.size();
+        Array ArrayInfo = (Array) varInfo.getInfo();
+        int size = ArrayInfo.getAxisSize(currentDim);
+        int offset = ArrayInfo.getOffset(currentDims);
+
+        if (currentDim == dims.size() - 1) {
+            currentDims.add(0);
+            int i = 0;
+            for (; i < count; i++) {
+                currentDims.set(currentDim, i);
+                System.out.print(" i32 " + thisNode.getChild(i).getContext());
+                if (offset < ArrayInfo.getSize() - 1) {
+                    System.out.print(" , ");
+                }
+            }
+            for (; i < size * dims.get(currentDim); i++) {
+                currentDims.set(currentDim, i);
+                System.out.print(" i32 0 ");
+                if (offset < ArrayInfo.getSize() - 1) {
+                    System.out.print(" , ");
+                }
+            }
+            currentDims.remove(currentDim);
+            return;
+        }
+        if (count <= 0) {
+            for (int i = 0; i < size * dims.get(currentDim); i++) {
+                System.out.print(" i32 0 ");
+                if (offset + i < ArrayInfo.getSize() - 1) {
+                    System.out.print(" , ");
+                }
+            }
+            currentDims.remove(currentDim);
+            return;
+        }
+        currentDims.add(0);
+        for (int i = 0; i < count; i++) {
+            currentDims.set(currentDim, i);
+            globalArrayInitialWalker(thisNode.getChild(i), varInfo, dims, currentDims);
+        }
+        for (int i = count * ArrayInfo.getAxisSize(currentDim); i < size * dims.get(currentDim); i++) {
+            System.out.print(" i32 0 ");
+            if (offset + i < ArrayInfo.getSize() - 1) {
+                System.out.print(" , ");
+            }
+        }
+        currentDims.remove(currentDim);
+    }
+
     public void addConstVar(String VarName, int varType, String constValue) {
         if (this.checkVarConflict(VarName)) {
             System.err.println("变量定义冲突！\n");
@@ -196,4 +259,30 @@ public class VarsManager {
             localMapStack.peek().put(VarName, newVar);
         }
     }
+
+    public String addParam(String VarName, int varType, RegisterManager reg) {
+        if (this.checkVarConflict(VarName)) {
+            System.err.println("变量定义冲突！\n");
+            System.exit(5);
+            return null;
+        }
+        String thisVarSpace = reg.allocateVar();
+        Var thisVar = new Var(VarName, varType, thisVarSpace);
+        localMapStack.peek().put(VarName, thisVar);
+        return thisVarSpace;
+    }
+
+    public String addParamArrayPtr(String VarName, int varType, RegisterManager reg, Array arrayInfo, llvmCmdBuffer buffer) {
+        if (this.checkVarConflict(VarName)) {
+            System.err.println("变量定义冲突！\n");
+            System.exit(5);
+            return null;
+        }
+        String thisVarSpace = reg.allocateVar();
+        Var thisVar = new Var(VarName, varType, thisVarSpace, arrayInfo);
+        localMapStack.peek().put(VarName, thisVar);
+        return thisVarSpace;
+    }
+
+
 }

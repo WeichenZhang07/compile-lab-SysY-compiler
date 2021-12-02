@@ -3,11 +3,13 @@ package dataStructure.VarType;
 import dataStructure.basicFinal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Function extends VarType {
     String name;
     int type;
     ArrayList<Integer> paramsType = new ArrayList<>();
+    HashMap<Integer, Array> arrayParamInfo = new HashMap<>();
 
     public Function(String name, int type, String[] paramsType) {
         super();
@@ -20,6 +22,15 @@ public class Function extends VarType {
         super();
         this.name = name;
         this.type = type;
+    }
+
+    public void addParam(int type) {
+        paramsType.add(type);
+    }
+
+    public void addParam(int type, Array array) {
+        paramsType.add(type);
+        arrayParamInfo.put(paramsType.size() - 1, array);
     }
 
     public String getName() {

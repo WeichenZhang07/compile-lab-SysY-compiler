@@ -14,7 +14,7 @@ public class Calculator {
                                       llvmCmdBuffer buffer) {
         nodeInStack thisNode;
         int thisVarType = BasicLlvmPrinter.zext(left, right, reg, buffer);
-        /*if (right.getType() == basicFinal.IS_NUM && left.getType() == basicFinal.IS_NUM) {
+        if (right.getType() == basicFinal.IS_NUM && left.getType() == basicFinal.IS_NUM) {
             boolean r;
             switch (operator) {
                 case (">") -> {
@@ -48,11 +48,11 @@ public class Calculator {
             }
             thisNode = new nodeInStack(r ? "1" : "0", basicFinal.IS_NUM, basicFinal.I1, right.isConst() && left.isConst());
         } //若能够在编译过程中得出条件运算结果
-        else {*/
+        else {
         String thisCode = reg.allocateTemperSpace();
         thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, basicFinal.I1, right.isConst() && left.isConst());
         BasicLlvmPrinter.printIcmp(left.getContext(), right.getContext(), thisCode, operator, buffer);
-        //}
+        }
         return thisNode;
     }
 

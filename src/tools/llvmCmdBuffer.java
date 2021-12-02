@@ -6,12 +6,12 @@ public class llvmCmdBuffer {
     private final ArrayList<String> allocateBuffer = new ArrayList<>();
     private final ArrayList<String> operateBuffer = new ArrayList<>();
 
-    public void addToAllocateBuffer(String pt) {
-        allocateBuffer.add(pt);
+    public void addToAllocateBuffer(String pt,boolean align) {
+        allocateBuffer.add((align?"   ":"")+pt);
     }
 
     public void addToOperateBuffer(String pt) {
-        operateBuffer.add(pt);
+        operateBuffer.add("   " + pt);
     }
 
     public void putsAllocate() {

@@ -1,4 +1,4 @@
-// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.1
+// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.2
 package gen;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -196,6 +196,18 @@ public class grammerBaseListener implements grammerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterFunction(grammerParser.FunctionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunction(grammerParser.FunctionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterFuncType(grammerParser.FuncTypeContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -227,6 +239,18 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFuncFParam(grammerParser.FuncFParamContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterNakedBlock(grammerParser.NakedBlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitNakedBlock(grammerParser.NakedBlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -407,6 +431,18 @@ public class grammerBaseListener implements grammerListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitLval(grammerParser.LvalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRightLval(grammerParser.RightLvalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRightLval(grammerParser.RightLvalContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

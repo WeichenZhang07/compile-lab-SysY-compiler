@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class basicFinal {
     public static final int IS_NUM = 0, IS_VAL = 1;
-    public static final int I1 = 0, I32 = 1, ARRAY = 2, FUNCTION = 3, VOID = 4, I32_P = 5;
+    public static final int I1 = 0, I32 = 1, ARRAY = 2, FUNCTION = 3, VOID = 4, I32_P = 2;
     private static final HashMap<Integer, String> typeMapI2S = new HashMap<>();
     private static final HashMap<String, Integer> typeMapS2I = new HashMap<>();
 
@@ -18,8 +18,6 @@ public class basicFinal {
         typeMapS2I.put("i32", I32);
         typeMapS2I.put("int",I32);
         typeMapS2I.put("int*",I32_P);
-        typeMapI2S.put(ARRAY, "ARRAY");
-        typeMapS2I.put("ARRAY", ARRAY);
         typeMapI2S.put(FUNCTION, "FUNCTION");
         typeMapS2I.put("FUNCTION", FUNCTION);
         typeMapI2S.put(VOID, "void");

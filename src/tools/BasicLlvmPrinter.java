@@ -78,7 +78,7 @@ public class BasicLlvmPrinter {
 
     public static void printGEP(String type, String varName, String register, String offset, llvmCmdBuffer buffer) {
         buffer.addToOperateBuffer(register + " = getelementptr " + type + ", " + type + "* " + varName
-                + " , i32 0, i32 " + offset);
+                + (type.equals("i32") ? " , i32 " : " , i32 0, i32 ") + offset);
     }
 
     public static void printStore(String source, String destination, llvmCmdBuffer buffer) {

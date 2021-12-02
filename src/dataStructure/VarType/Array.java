@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class Array extends VarType {
     private final ArrayList<Integer> dims = new ArrayList<>();
-    private ArrayList<Integer> blockSize;
+    private final ArrayList<Integer> blockSize;
     private final int VarType;
     private int size = 0;
 
@@ -53,7 +53,7 @@ public class Array extends VarType {
         for (int i = 0; i < scripts.size(); i++) {
             result += scripts.get(i) * blockSize.get(i);
         }
-        return result ;
+        return result;
     }
 
     public nodeInStack getOffset(RegisterManager reg, llvmCmdBuffer buffer, nodeInStack... nodes) {
@@ -78,6 +78,10 @@ public class Array extends VarType {
     }
 
     public String getArrType() {
-        return "[ " + size + " x i32 ]";
+        return dims.get(0) == 0 ? "i32" : "[ " + size + " x i32 ]";
+    }
+
+    public int getAxisSize(int axis) {
+        return blockSize.get(axis);
     }
 }

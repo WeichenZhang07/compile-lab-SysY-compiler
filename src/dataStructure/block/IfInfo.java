@@ -2,6 +2,20 @@ package dataStructure.block;
 
 public class IfInfo extends BlockInfo {
     String ifBlockCode, elseBlockCode, nextBlockCode;
+    boolean ifReturned = false;
+    boolean elseReturned = false;
+
+    public void setElseReturned() {
+        elseReturned = true;
+    }
+
+    public void setIfReturned() {
+        ifReturned = true;
+    }
+
+    public boolean isFullyReturned() {
+        return ifReturned && elseReturned;
+    }
 
     public IfInfo(String ifBlockCode, String nextBlockCode) {
         super(IF_SINGLE);

@@ -3,6 +3,7 @@ import dataStructure.VarType.Array;
 import dataStructure.VarType.Function;
 import dataStructure.block.IfInfo;
 import dataStructure.block.WhileBlockInfo;
+import dataStructure.FuncParamNode;
 import gen.grammerParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNodeImpl;
@@ -21,12 +22,13 @@ public class myListener extends grammerBaseListener {
     BlockManager blockManager = new BlockManager();
     llvmCmdBuffer cmdBuffer = new llvmCmdBuffer();
 
-    int currentLayer = 0;// block深度
+    boolean isElse = false;
+
     int top_var_del_type; // tell exitVarDef() function what the type of the var is;
-    int currentAxisOfArray = 0; //用于数组初始化时判断当前括号深度。
 
 
     Stack<nodeInStack> stack = new Stack<>(); //store information to be passed to higher layer
+    ArrayList<FuncParamNode> paramList = new ArrayList<>();
 
     private void BinaryExp(String operator) {
         nodeInStack right = stack.pop();
@@ -36,7 +38,7 @@ public class myListener extends grammerBaseListener {
         stack.push(thisNode);
     }
 
-    private void arrayScriptsManage(String newName, int dimension) {
+    private void arrayScriptsManage(String newName, int dimension, boolean isInit) {
         int[] dims = new int[dimension];
         for (int i = dimension - 1; i >= 0; i--) {
             nodeInStack right = stack.pop();
@@ -46,7 +48,7 @@ public class myListener extends grammerBaseListener {
             }
             dims[i] = Integer.parseInt(right.getContext());
         }
-        varsManager.addArray(newName, top_var_del_type, registerManager, cmdBuffer, dims);
+        varsManager.addArray(newName, top_var_del_type, registerManager, cmdBuffer, isInit, dims);
     }
 
     private void arrayInitParser(int subCount, nodeInStack thisNode, boolean isConstInit) {
@@ -65,22 +67,55 @@ public class myListener extends grammerBaseListener {
         stack.push(thisNode);
     }
 
+    private void logicZext(nodeInStack right) {
+        nodeInStack thisNode = right;
+        if (right.getVarType() != basicFinal.I1) {
+            thisNode = Calculator.compare(new nodeInStack("0", basicFinal.IS_NUM,
+                    basicFinal.I32, true), right, "<", registerManager, cmdBuffer);
+        }
+        stack.push(thisNode);
+    }
+
     @Override
     public void enterFuncDef(grammerParser.FuncDefContext ctx) {
+        varsManager.enterBlock();
+
         System.out.print("define dso_local ");
         String Ident = ctx.getChild(1).toString();
-        String funcType = ctx.getChild(0).getChild(0).toString();
-        System.out.print("i32 ");
-        System.out.println("@" + Ident + " () {");
-        currentLayer++;
+        int funcType = basicFinal.getIntTypeByString(ctx.getChild(0).getChild(0).toString());
+        System.out.print(basicFinal.getStringTypeByInt(funcType) + " ");
+        System.out.print("@" + Ident + " ");
+        if (ctx.getChildCount() == 4) {
+            System.out.print("( )");
+        }
     }
 
     @Override
     public void exitFuncDef(grammerParser.FuncDefContext ctx) {
-        currentLayer--;
+
+        int funcType = basicFinal.getIntTypeByString(ctx.getChild(0).getChild(0).toString());
+        String Ident = ctx.getChild(1).toString();
+        Function thisFunc = new Function(Ident, funcType);
+        blockManager.enterFunc(thisFunc);
+        for (FuncParamNode thisNode : paramList) {
+            if (thisNode.isArrayPtr()) {
+                thisFunc.addParam(thisNode.getType(), thisNode.getArrayInfo());
+            } else {
+                thisFunc.addParam(thisNode.getType());
+            }
+        }
+        System.out.println("{");
+        varsManager.addFunction(Ident, funcType, thisFunc);
+        paramList.clear();
+    }
+
+    @Override
+    public void exitFunction(grammerParser.FunctionContext ctx) {
+        blockManager.exitCurrentBlock(cmdBuffer);
         cmdBuffer.putsAllocate();
         cmdBuffer.putsOperate();
         System.out.println("}");
+        varsManager.exitBlock();
     }
 
     @Override
@@ -127,8 +162,19 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitReturn(grammerParser.ReturnContext ctx) {
-        nodeInStack right = stack.pop();
-        cmdBuffer.addToOperateBuffer("ret i32 " + right.getContext());
+        if (ctx.getChildCount() == 3) {
+            nodeInStack right = stack.pop();
+            blockManager.ret(isElse, right.getVarType());
+            cmdBuffer.addToOperateBuffer("ret i32 " + right.getContext());
+        } else {
+            blockManager.ret(isElse, basicFinal.VOID);
+            cmdBuffer.addToOperateBuffer("ret void");
+        }
+    }
+
+    @Override
+    public void enterIf(grammerParser.IfContext ctx) {
+        varsManager.enterBlock();
     }
 
     @Override
@@ -153,12 +199,12 @@ public class myListener extends grammerBaseListener {
     }
 
     @Override
-    public void enterBlock(grammerParser.BlockContext ctx) {
+    public void enterNakedBlock(grammerParser.NakedBlockContext ctx) {
         varsManager.enterBlock();
     }
 
     @Override
-    public void exitBlock(grammerParser.BlockContext ctx) {
+    public void exitNakedBlock(grammerParser.NakedBlockContext ctx) {
         varsManager.exitBlock();
     }
 
@@ -184,18 +230,21 @@ public class myListener extends grammerBaseListener {
     public void enterElseBlock(grammerParser.ElseBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
         cmdBuffer.addToOperateBuffer(thisInfo.getElseBlockCode().substring(1) + ":");
+        isElse = true;
     }
 
     @Override
     public void exitElseBlock(grammerParser.ElseBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
         BasicLlvmPrinter.printBr(thisInfo.getNextBlockCode(), cmdBuffer);
+        isElse = false;
     }
 
     @Override
     public void exitIf(grammerParser.IfContext ctx) {
-        IfInfo thisInfo = (IfInfo) blockManager.exitCurrentBlock();
+        IfInfo thisInfo = (IfInfo) blockManager.exitCurrentBlock(cmdBuffer);
         cmdBuffer.addToOperateBuffer(thisInfo.getNextBlockCode().substring(1) + ":");
+        varsManager.exitBlock();
     }
 
     @Override
@@ -230,6 +279,39 @@ public class myListener extends grammerBaseListener {
             BasicLlvmPrinter.printGEP(arrayInfo.getArrType(), thisVar.getRegisCode(), thisReg,
                     arrayInfo.getOffset(registerManager, cmdBuffer, nodes).getContext(), cmdBuffer);
             thisNode = new nodeInStack(thisReg, basicFinal.IS_VAL, basicFinal.I32, thisVar.isConst());
+        }
+        stack.push(thisNode);
+    }
+
+    @Override
+    public void exitRightLval(grammerParser.RightLvalContext ctx) {
+        ParseTree tmp = ctx.getChild(0);
+        String name = tmp.toString();
+        Var thisVar = varsManager.consultVar(name);
+        if (thisVar == null) {
+            System.err.println("遇到未定义变量名！");
+            System.exit(10);
+        }
+        String code = thisVar.getRegisCode();
+        nodeInStack thisNode;
+        if (ctx.getChildCount() == 1 && thisVar.getType() != basicFinal.I32_P) {
+            if (thisVar.isConst()) {
+                thisNode = new nodeInStack(thisVar.getConstContent(), dataStructure.basicFinal.IS_NUM,
+                        thisVar.getType(), true);
+            } else thisNode = new nodeInStack(code, dataStructure.basicFinal.IS_VAL, thisVar.getType(),
+                    false);
+        } else {
+            int count = ctx.getChildCount() - 1;
+            Array arrayInfo = (Array) thisVar.getInfo();
+            nodeInStack[] nodes = new nodeInStack[count];
+            for (int i = count - 1; i >= 0; i--) {
+                nodes[i] = stack.pop();
+            }
+            String thisReg = registerManager.allocateTemperSpace();
+            BasicLlvmPrinter.printGEP(arrayInfo.getArrType(), thisVar.getRegisCode(), thisReg,
+                    arrayInfo.getOffset(registerManager, cmdBuffer, nodes).getContext(), cmdBuffer);
+            thisNode = new nodeInStack(thisReg, basicFinal.IS_VAL,
+                    count == (arrayInfo.getDim()) ? basicFinal.I32 : basicFinal.I32_P, thisVar.isConst());
         }
         stack.push(thisNode);
     }
@@ -288,8 +370,8 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
-        nodeInStack left = stack.pop();
         nodeInStack right = stack.pop();
+        nodeInStack left = stack.pop();
         if (!(right.getVarType() == basicFinal.I1)) {
             logicZext(right);
             right = stack.pop();
@@ -312,12 +394,18 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitPrimaryExp(grammerParser.PrimaryExpContext ctx) {
-        if (ctx.getChild(0) instanceof grammerParser.LvalContext) {
+        if (ctx.getChild(0) instanceof grammerParser.RightLvalContext) {
             nodeInStack right = stack.pop();
             if (right.getType() == basicFinal.IS_VAL) {
-                String thisCode = registerManager.allocateTemperSpace();
-                nodeInStack thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, basicFinal.I32, right.isConst());
-                cmdBuffer.addToOperateBuffer(thisNode.getContext() + " = load i32, i32* " + right.getContext());
+                String thisCode = right.getContext();
+                int thisVarType = right.getVarType();
+                if (thisVarType != basicFinal.I32_P) {
+                    thisCode = registerManager.allocateTemperSpace();
+                    cmdBuffer.addToOperateBuffer(thisCode + " = load " +
+                            basicFinal.getStringTypeByInt(right.getType()) + " , " + basicFinal.getStringTypeByInt(right.getType())
+                            + "* " + right.getContext());
+                }
+                nodeInStack thisNode = new nodeInStack(thisCode, basicFinal.IS_VAL, thisVarType, right.isConst());
                 stack.push(thisNode);
             } else stack.push(right);
         }
@@ -353,8 +441,11 @@ public class myListener extends grammerBaseListener {
                 ((ctx.getChild(2).getChildCount() - 1) / 2 + 1);
         if (thisFunc.getParamNum() != paramNum) System.exit(9);
         ArrayList<String> params = new ArrayList<>();
+        for (int i = 0; i < paramNum; i++) {
+            params.add("");
+        }
         for (int i = paramNum - 1; i >= 0; i--) {
-            params.add(paramNum - 1 - i, stack.pop().getContext());
+            params.set(i, stack.pop().getContext());
         }
         nodeInStack thisNode = Calculator.FunctionCaller(funcName, params, cmdBuffer, registerManager, varsManager);
         stack.push(thisNode);
@@ -376,7 +467,7 @@ public class myListener extends grammerBaseListener {
         }//0维变量初始化
         else {
             int dimension = ctx.getChildCount() - 1;
-            arrayScriptsManage(newName, dimension);
+            arrayScriptsManage(newName, dimension, false);
         }
     }
 
@@ -389,7 +480,7 @@ public class myListener extends grammerBaseListener {
         } else {
             nodeInStack initVal = stack.pop();
             int dimension = ctx.getChildCount() - 3;
-            arrayScriptsManage(newName, dimension);
+            arrayScriptsManage(newName, dimension, true);
             Var thisArray = varsManager.consultVar(newName);
             varsManager.ArrayInitializer(thisArray, initVal, cmdBuffer, registerManager, varsManager);
         }
@@ -411,7 +502,7 @@ public class myListener extends grammerBaseListener {
             //thisNode = new nodeInStack(right.getContext(), basicFinal.IS_NUM, basicFinal.I32, true);
         } else {
             int dimension = ctx.getChildCount() - 3;
-            arrayScriptsManage(name, dimension);
+            arrayScriptsManage(name, dimension, true);
             Var thisArray = varsManager.consultVar(name);
             varsManager.ArrayInitializer(thisArray, right, cmdBuffer, registerManager, varsManager);
         }
@@ -432,6 +523,11 @@ public class myListener extends grammerBaseListener {
     }
 
     @Override
+    public void enterWhile(grammerParser.WhileContext ctx) {
+        varsManager.enterBlock();
+    }
+
+    @Override
     public void exitWhileState(grammerParser.WhileStateContext ctx) {
         nodeInStack right = stack.pop();
         WhileBlockInfo thisBlockInfo = blockManager.getCurrentWhileInfo();
@@ -443,7 +539,8 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitWhile(grammerParser.WhileContext ctx) {
-        WhileBlockInfo thisBlockInfo = (WhileBlockInfo) blockManager.exitCurrentBlock();
+        WhileBlockInfo thisBlockInfo = (WhileBlockInfo) blockManager.exitCurrentBlock(cmdBuffer);
+        varsManager.exitBlock();
         BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode(), cmdBuffer);
         cmdBuffer.addToOperateBuffer(thisBlockInfo.getNextBlockCode().substring(1) + ":");
     }
@@ -476,12 +573,52 @@ public class myListener extends grammerBaseListener {
         logicZext(stack.pop());
     }
 
-    private void logicZext(nodeInStack right) {
-        nodeInStack thisNode = right;
-        if (right.getVarType() != basicFinal.I1) {
-            thisNode = Calculator.compare(new nodeInStack("0", basicFinal.IS_NUM,
-                    basicFinal.I32, true), right, "<", registerManager, cmdBuffer);
+    @Override
+    public void exitFuncFParam(grammerParser.FuncFParamContext ctx) {
+        int count = ctx.getChildCount();
+        String name = ctx.getChild(1).toString();
+        int type = basicFinal.getIntTypeByString(ctx.getChild(0).toString());
+        if (count == 2) {
+            FuncParamNode thisNode = new FuncParamNode(name, type);
+            paramList.add(thisNode);
+        } else {
+            int numOfScripts = count - 4;
+            int[] scripts = new int[numOfScripts + 1];
+            scripts[0] = 0;
+            for (int i = numOfScripts; i > 0; i--) {
+                nodeInStack right = stack.pop();
+                if (!(right.getType() == basicFinal.IS_NUM)) {
+                    System.err.println("函数声明中形参数组长度必须为编译时可求值数量");
+                }
+                scripts[i] = Integer.parseInt(right.getContext());
+            }
+            Array arrayInfo = new Array(basicFinal.I32, scripts);
+            FuncParamNode thisNode = new FuncParamNode(name, basicFinal.I32_P, arrayInfo);
+            paramList.add(thisNode);
         }
-        stack.push(thisNode);
     }
+
+    @Override
+    public void exitFuncFParams(grammerParser.FuncFParamsContext ctx) {
+        System.out.print(" ( ");
+        int size = paramList.size();
+        for (int i = 0; i < size; i++) {
+            FuncParamNode right = paramList.get(i);
+            String regSpace, paraSpace;
+            if (right.isArrayPtr()) {
+                paraSpace = varsManager.addParamArrayPtr(right.getName(), right.getType(), registerManager,
+                        right.getArrayInfo(), cmdBuffer);
+            } else {
+                paraSpace = registerManager.allocateTemperSpace();
+                regSpace = varsManager.addVar(right.getName(), right.getType(), registerManager, cmdBuffer);
+                cmdBuffer.addToOperateBuffer("store " + basicFinal.getStringTypeByInt(right.getType()) + " " + paraSpace +
+                        " , " + basicFinal.getStringTypeByInt(right.getType()) + "* " + regSpace);
+            }
+            System.out.print(" " + basicFinal.getStringTypeByInt(right.getType()) + " " + paraSpace + " ");
+
+            if (i < size - 1) System.out.print(", ");
+        }
+        System.out.print(")");
+    }
+
 }

@@ -1,6 +1,6 @@
 grammar grammer;
 
-compUnit : (decl| funcDef)+;
+compUnit : (decl| function)+;
 //ignore \t\r\n
 //skip notes
 SPACE: ('\t'|'\n'|'\r'|' ') -> channel(HIDDEN);
@@ -22,11 +22,13 @@ varDef : Ident scripts* # single
         | Ident scripts* '=' initVal #initial;
 initVal : exp #singleInitVal
         | '{' (initVal (',' initVal)*)? '}' #arrayInitVal;
-funcDef : funcType Ident '('(funcFParams)* ')' block;
+funcDef : funcType Ident '('(funcFParams)* ')';
+function :funcDef block;
 funcType : 'int'|'void';
 funcFParams : funcFParam (',' funcFParam)*;
-funcFParam : Btype Ident ('[' ']' ('['exp']')*)?;
+funcFParam : Btype Ident ('[' ']' (scripts)*)?;
 Ident : NoneDigit ( NoneDigit | Digit )*;
+nakedBlock : block;
 block : '{' blockItem* '}';
 blockItem: decl|stmt;
 ifState :'if' '(' cond ')';
@@ -37,11 +39,12 @@ stmt : 'return' (exp)? ';' # return |
         lval '=' exp ';'# assignment|
         ifState ifBlock elseBlock? # if|
         whileState stmt #while |
-        block # singleBlock|
+        nakedBlock # singleBlock|
         'continue' ';'#continue|
         'break' ';'#break|
         exp? ';' #singleExp;
 lval : Ident scripts*;
+rightLval : Ident scripts*;
 cond: lOrExp;
 exp : addexp;
 addexp : mulexp # singleAddExp| addexp('+'|'-') mulexp # multipleAddExp;
@@ -55,7 +58,7 @@ unaryOp: '+'|'-'|'!';
 unaryExp : primaryExp # pri| Ident '(' funcRParams? ')' # func
             |unaryOp unaryExp # unary;
 funcRParams : exp (',' exp)*;
-primaryExp: '(' exp ')'| number|lval;
+primaryExp: '(' exp ')'| number|rightLval;
 
 
 number : Decimal_const #decimal | Octal_const# octal | Hexadecimal_const #hex;

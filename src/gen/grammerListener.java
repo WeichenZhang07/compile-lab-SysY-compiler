@@ -1,4 +1,4 @@
-// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.1
+// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.2
 package gen;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -170,6 +170,16 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitFuncDef(grammerParser.FuncDefContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link grammerParser#function}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunction(grammerParser.FunctionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#function}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunction(grammerParser.FunctionContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link grammerParser#funcType}.
 	 * @param ctx the parse tree
 	 */
@@ -199,6 +209,16 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFuncFParam(grammerParser.FuncFParamContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#nakedBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterNakedBlock(grammerParser.NakedBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#nakedBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitNakedBlock(grammerParser.NakedBlockContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#block}.
 	 * @param ctx the parse tree
@@ -365,6 +385,16 @@ public interface grammerListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLval(grammerParser.LvalContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link grammerParser#rightLval}.
+	 * @param ctx the parse tree
+	 */
+	void enterRightLval(grammerParser.RightLvalContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link grammerParser#rightLval}.
+	 * @param ctx the parse tree
+	 */
+	void exitRightLval(grammerParser.RightLvalContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#cond}.
 	 * @param ctx the parse tree
