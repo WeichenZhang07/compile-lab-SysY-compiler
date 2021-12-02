@@ -64,12 +64,12 @@ public class Array extends VarType {
         nodeInStack constDim, result;
         result = new nodeInStack("0", basicFinal.IS_VAL, basicFinal.I32, true);
         for (int i = 0; i < nodes.length; i++) {
-            constDim = new nodeInStack(blockSize.get(i).toString(), basicFinal.IS_VAL, basicFinal.I32, true);
+            constDim = new nodeInStack(blockSize.get(i).toString(), basicFinal.IS_NUM, basicFinal.I32, true);
             result = Calculator.BinaryOperation(
                     Calculator.BinaryOperation(constDim, nodes[i], "*", reg, buffer)
                     , result, "+", reg, buffer);
         }
-        return Calculator.BinaryOperation(result, new nodeInStack("4", basicFinal.IS_VAL,
+        return Calculator.BinaryOperation(result, new nodeInStack("4", basicFinal.IS_NUM,
                 basicFinal.I32, true), "*", reg, buffer);
     }
 

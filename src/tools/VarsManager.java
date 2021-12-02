@@ -119,7 +119,7 @@ public class VarsManager {
         } else {
             thisPointer = "@" + ArrayName;
             thisVar = new Var(ArrayName, basicFinal.ARRAY, thisPointer, thisArray);
-            System.out.println(thisPointer + " = common global " + "[ " + size + " x " + basicFinal.getStringTypeByInt(type)
+            System.out.println(thisPointer + " = dso_local global " + "[ " + size + " x " + basicFinal.getStringTypeByInt(type)
                     + " ] zeroinitializer, align 16");
         }
         localMapStack.peek().put(ArrayName, thisVar);

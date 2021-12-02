@@ -132,7 +132,7 @@ public class Calculator {
     public static nodeInStack logicalOperation(nodeInStack left, nodeInStack right, String operator,
                                                RegisterManager reg, llvmCmdBuffer buffer) {
         nodeInStack thisNode;
-        if (right.getVarType() == basicFinal.IS_NUM && left.getVarType() == basicFinal.IS_NUM) {
+        if (right.getType() == basicFinal.IS_NUM && left.getType() == basicFinal.IS_NUM) {
             boolean r = false;
             switch (operator) {
                 case ("&&") -> {

@@ -282,7 +282,7 @@ public class myListener extends grammerBaseListener {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
         nodeInStack thisNode;
-        thisNode = Calculator.BinaryOperation(left, right, opC, registerManager, cmdBuffer);
+        thisNode = Calculator.compare(left, right, opC, registerManager, cmdBuffer);
         stack.push(thisNode);
     }
 
