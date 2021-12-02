@@ -53,7 +53,7 @@ public class Array extends VarType {
         for (int i = 0; i < scripts.size(); i++) {
             result += scripts.get(i) * blockSize.get(i);
         }
-        return result * 4;
+        return result ;
     }
 
     public nodeInStack getOffset(RegisterManager reg, llvmCmdBuffer buffer, nodeInStack... nodes) {
@@ -69,8 +69,7 @@ public class Array extends VarType {
                     Calculator.BinaryOperation(constDim, nodes[i], "*", reg, buffer)
                     , result, "+", reg, buffer);
         }
-        return Calculator.BinaryOperation(result, new nodeInStack("4", basicFinal.IS_NUM,
-                basicFinal.I32, true), "*", reg, buffer);
+        return result;
     }
 
 

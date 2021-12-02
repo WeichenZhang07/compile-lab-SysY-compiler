@@ -38,7 +38,7 @@ public class myListener extends grammerBaseListener {
 
     private void arrayScriptsManage(String newName, int dimension) {
         int[] dims = new int[dimension];
-        for (int i = dimension-1; i >= 0; i--) {
+        for (int i = dimension - 1; i >= 0; i--) {
             nodeInStack right = stack.pop();
             if (!right.isConst()) {
                 System.err.println("数组定义下标中存在无法在编译过程中确认的下标！");
@@ -288,8 +288,12 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
-        nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
+        nodeInStack right = stack.pop();
+        if (!(right.getVarType() == basicFinal.I1)) {
+            logicZext(right);
+            right = stack.pop();
+        }
         String operator = "&&";
         stack.push(Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer));
     }
@@ -298,6 +302,10 @@ public class myListener extends grammerBaseListener {
     public void exitMultipleLOrExp(grammerParser.MultipleLOrExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
+        if (!(right.getVarType() == basicFinal.I1)) {
+            logicZext(right);
+            right = stack.pop();
+        }
         String operator = "||";
         stack.push(Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer));
     }
@@ -454,7 +462,26 @@ public class myListener extends grammerBaseListener {
     public void exitArrayConstInitVal(grammerParser.ArrayConstInitValContext ctx) {
         int count = ctx.getChildCount();
         int subCount = (count - 2) / 2 + (count - 2) % 2;
-        nodeInStack thisNode = new nodeInStack("null", basicFinal.ARRAY, basicFinal.I32, true);
+        nodeInStack thisNode = new nodeInStack("null", basicFinal.IS_VAL, basicFinal.I32, true);
         arrayInitParser(subCount, thisNode, true);
+    }
+
+    @Override
+    public void exitSingleLAndExp(grammerParser.SingleLAndExpContext ctx) {
+        logicZext(stack.pop());
+    }
+
+    @Override
+    public void exitSingleLOrExp(grammerParser.SingleLOrExpContext ctx) {
+        logicZext(stack.pop());
+    }
+
+    private void logicZext(nodeInStack right) {
+        nodeInStack thisNode = right;
+        if (right.getVarType() != basicFinal.I1) {
+            thisNode = Calculator.compare(new nodeInStack("0", basicFinal.IS_NUM,
+                    basicFinal.I32, true), right, "<", registerManager, cmdBuffer);
+        }
+        stack.push(thisNode);
     }
 }

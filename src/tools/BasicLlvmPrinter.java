@@ -13,10 +13,10 @@ public class BasicLlvmPrinter {
         String regCode = reg.allocateTemperSpace();
         if (a.getVarType() < b.getVarType()) {
             buffer.addToOperateBuffer(regCode + " = zext i1 " + a.getContext() +
-                    "to i32");
+                    " to i32");
         } else if (a.getVarType() > b.getVarType()) {
             buffer.addToOperateBuffer(regCode + " = zext i1 " + b.getContext() +
-                    "to i32");
+                    " to i32");
         }
         a.setVarType(basicFinal.I32);
         a.setContext(regCode);
