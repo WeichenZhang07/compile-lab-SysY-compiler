@@ -288,8 +288,8 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
-        nodeInStack left = stack.pop();
         nodeInStack right = stack.pop();
+        nodeInStack left = stack.pop();
         if (!(right.getVarType() == basicFinal.I1)) {
             logicZext(right);
             right = stack.pop();
