@@ -27,3 +27,9 @@ void putarray(int n, int a[]) {
         printf(" %d", a[i]);
     printf("\n");
 }
+void memset (void *s, int c, int n)
+{
+for(int i=0;i<n;i++){
+    *s=0;
+}
+}

@@ -60,17 +60,17 @@ public interface grammerListener extends ParseTreeListener {
 	 */
 	void exitSingleConstInitVal(grammerParser.SingleConstInitValContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code arrarConstInitVal}
+	 * Enter a parse tree produced by the {@code arrayConstInitVal}
 	 * labeled alternative in {@link grammerParser#constInitVal}.
 	 * @param ctx the parse tree
 	 */
-	void enterArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx);
+	void enterArrayConstInitVal(grammerParser.ArrayConstInitValContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code arrarConstInitVal}
+	 * Exit a parse tree produced by the {@code arrayConstInitVal}
 	 * labeled alternative in {@link grammerParser#constInitVal}.
 	 * @param ctx the parse tree
 	 */
-	void exitArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx);
+	void exitArrayConstInitVal(grammerParser.ArrayConstInitValContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link grammerParser#constExp}.
 	 * @param ctx the parse tree

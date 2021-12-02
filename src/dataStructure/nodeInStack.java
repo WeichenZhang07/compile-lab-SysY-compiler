@@ -1,10 +1,13 @@
 package dataStructure;
 
+import java.util.ArrayList;
+
 public class nodeInStack {
     String context;
     int type;
     int varType;
     boolean isConst;
+    ArrayList<nodeInStack> childInitValNode = new ArrayList<>();
 
     public nodeInStack() {
         this.type = -1;
@@ -48,5 +51,21 @@ public class nodeInStack {
 
     public void setNotConst() {
         this.isConst = false;
+    }
+
+    public int getChildCount() {
+        return childInitValNode.size();
+    }
+
+    public void addChild(nodeInStack child) {
+        childInitValNode.add(child);
+    }
+
+    public nodeInStack getChild(int i) {
+        if (i >= childInitValNode.size()) {
+            System.err.println("访问ArrayList越界！");
+            System.exit(-1);
+        }
+        return childInitValNode.get(i);
     }
 }

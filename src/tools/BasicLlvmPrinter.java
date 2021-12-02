@@ -70,4 +70,18 @@ public class BasicLlvmPrinter {
     public static void printLogic(String var1, String var2, String register, String operation, llvmCmdBuffer buffer) {
         buffer.addToOperateBuffer(register + " = " + operation + " i1 " + var1 + ", " + var2);
     }
+
+    public static void printGEP(String type, String varName, String register, int offset, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer(register + " = getelementptr " + type + ", " + type + "* " + varName
+                + " , i32 0, i32 " + offset);
+    }
+
+    public static void printGEP(String type, String varName, String register, String offset, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer(register + " = getelementptr " + type + ", " + type + "* " + varName
+                + " , i32 0, i32 " + offset);
+    }
+
+    public static void printStore(String source, String destination, llvmCmdBuffer buffer) {
+        buffer.addToOperateBuffer("store i32 " + source + " , i32* " + destination);
+    }
 }

@@ -1,13 +1,6 @@
-int func1() {
-    return 555;
-}
-
-int func2() {
-    return 111;
-}
-
+int arr[2][2] = {{1, 1}, {4, 5}};
 int main() {
-    int a = func1();
-    putint(a - func2());
+    arr[1] = 2;
+    putint(arr[1][0]);
     return 0;
 }

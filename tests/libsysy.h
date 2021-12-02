@@ -8,4 +8,5 @@
 /* Input & output functions */
 int  getint(), getch(), getarray(int a[]);
 void putint(int a), putch(int a), putarray(int n, int a[]);
+void memset (void *s, int c, int n);
 #endif

@@ -387,6 +387,23 @@ public class grammerParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
+	public static class ArrayConstInitValContext extends ConstInitValContext {
+		public List<ConstInitValContext> constInitVal() {
+			return getRuleContexts(ConstInitValContext.class);
+		}
+		public ConstInitValContext constInitVal(int i) {
+			return getRuleContext(ConstInitValContext.class,i);
+		}
+		public ArrayConstInitValContext(ConstInitValContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof grammerListener ) ((grammerListener)listener).enterArrayConstInitVal(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof grammerListener ) ((grammerListener)listener).exitArrayConstInitVal(this);
+		}
+	}
 	public static class SingleConstInitValContext extends ConstInitValContext {
 		public ConstExpContext constExp() {
 			return getRuleContext(ConstExpContext.class,0);
@@ -399,23 +416,6 @@ public class grammerParser extends Parser {
 		@Override
 		public void exitRule(ParseTreeListener listener) {
 			if ( listener instanceof grammerListener ) ((grammerListener)listener).exitSingleConstInitVal(this);
-		}
-	}
-	public static class ArrarConstInitValContext extends ConstInitValContext {
-		public List<ConstInitValContext> constInitVal() {
-			return getRuleContexts(ConstInitValContext.class);
-		}
-		public ConstInitValContext constInitVal(int i) {
-			return getRuleContext(ConstInitValContext.class,i);
-		}
-		public ArrarConstInitValContext(ConstInitValContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof grammerListener ) ((grammerListener)listener).enterArrarConstInitVal(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof grammerListener ) ((grammerListener)listener).exitArrarConstInitVal(this);
 		}
 	}
 
@@ -443,7 +443,7 @@ public class grammerParser extends Parser {
 				}
 				break;
 			case T__4:
-				_localctx = new ArrarConstInitValContext(_localctx);
+				_localctx = new ArrayConstInitValContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(105);

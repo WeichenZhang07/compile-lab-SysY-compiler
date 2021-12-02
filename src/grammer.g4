@@ -12,7 +12,7 @@ constDecl: 'const' Btype constDef (',' constDef)* ';';
 Btype : 'int';
 constDef : Ident constScripts* '=' constInitVal;
 constInitVal : constExp #singleConstInitVal
-              |'{' (constInitVal (',' constInitVal)*)? '}' # arrarConstInitVal;
+              |'{' (constInitVal (',' constInitVal)*)? '}' # arrayConstInitVal;
 constExp: addexp;
 
 constScripts :'[' constExp ']';

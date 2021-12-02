@@ -1,5 +1,7 @@
 package tools;
 
+import dataStructure.Var;
+import dataStructure.VarType.Function;
 import dataStructure.basicFinal;
 import dataStructure.nodeInStack;
 
@@ -160,25 +162,27 @@ public class Calculator {
         return thisNode;
     }
 
-    public static nodeInStack FunctionCaller(String funcName, int retType, ArrayList<Integer> params, llvmCmdBuffer buffer,
-                                             RegisterManager reg) {
-        String retTypeString = basicFinal.typeMap.get(retType);
+    public static nodeInStack FunctionCaller(String funcName, ArrayList<String> params, llvmCmdBuffer buffer,
+                                             RegisterManager reg, VarsManager varsManager) {
+        Function funcInfo = (Function) varsManager.consultVar(funcName).getInfo();
+        String retTypeString = basicFinal.getStringTypeByInt(funcInfo.getType());
         nodeInStack thisNode;
         StringBuilder cmd = new StringBuilder();
         String thisRegSpace = "";
-        if (retType != basicFinal.VOID) {
+        if (funcInfo.getType() != basicFinal.VOID) {
             thisRegSpace = reg.allocateTemperSpace();
             cmd = new StringBuilder(thisRegSpace + " = ");
         }
-        cmd.append("call ").append(retTypeString).append(" @ ").append(funcName).append("( ");
+        cmd.append("call ").append(retTypeString).append(" @").append(funcName).append("( ");
         int len = params.size();
         for (int i = 0; i < len; i++) {
-            cmd.append(basicFinal.typeMap.get(params.get(i)));
+            cmd.append(basicFinal.getStringTypeByInt(funcInfo.getParamsType().get(i))).append(" ")
+                    .append(params.get(i));
             if (i < len - 1) cmd.append(", ");
         }
         cmd.append(" )");
         buffer.addToOperateBuffer(cmd.toString());
-        thisNode = new nodeInStack(thisRegSpace, basicFinal.IS_VAL, retType, false);
+        thisNode = new nodeInStack(thisRegSpace, basicFinal.IS_VAL, funcInfo.getType(), false);
         return thisNode;
     }
 

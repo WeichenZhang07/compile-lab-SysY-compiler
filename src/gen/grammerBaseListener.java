@@ -76,13 +76,13 @@ public class grammerBaseListener implements grammerListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx) { }
+	@Override public void enterArrayConstInitVal(grammerParser.ArrayConstInitValContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitArrarConstInitVal(grammerParser.ArrarConstInitValContext ctx) { }
+	@Override public void exitArrayConstInitVal(grammerParser.ArrayConstInitValContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
