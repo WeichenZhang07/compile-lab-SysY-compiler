@@ -84,6 +84,13 @@ public class BlockManager {
                     System.exit(16);
                 }
             }
+            else{
+                if (thisBlock.getRetType() == basicFinal.VOID) {
+                    buffer.addToOperateBuffer("ret void");
+                } else {
+                    buffer.addToOperateBuffer("ret i32 0");
+                }
+            }
         }
         return blockInfoStack.pop();
     }
