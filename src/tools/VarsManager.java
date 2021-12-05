@@ -212,14 +212,14 @@ public class VarsManager {
             for (; i < count; i++) {
                 currentDims.set(currentDim, i);
                 System.out.print(" i32 " + thisNode.getChild(i).getContext());
-                if (offset < ArrayInfo.getSize() - 1) {
+                if (offset+i < ArrayInfo.getSize() - 1) {
                     System.out.print(" , ");
                 }
             }
             for (; i < size * dims.get(currentDim); i++) {
                 currentDims.set(currentDim, i);
                 System.out.print(" i32 0 ");
-                if (offset < ArrayInfo.getSize() - 1) {
+                if (offset+i < ArrayInfo.getSize() - 1) {
                     System.out.print(" , ");
                 }
             }
