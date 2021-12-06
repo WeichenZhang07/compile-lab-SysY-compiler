@@ -219,14 +219,7 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitCond(grammerParser.CondContext ctx) {
-        nodeInStack right = stack.pop();
-        if (right.getVarType() != dataStructure.basicFinal.I1) {
-            String thisCode = registerManager.allocateTemperSpace();
-            cmdBuffer.addToOperateBuffer(thisCode + " = trunc i32 " + right.getContext() + " to i1");
-            right.setVarType(dataStructure.basicFinal.I1);
-            right.setContext(thisCode);
-        }
-        stack.push(right);
+
     }
 
     @Override
