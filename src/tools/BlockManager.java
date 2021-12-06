@@ -54,9 +54,10 @@ public class BlockManager {
     public void enterCondBlock(RegisterManager reg) {
         String firstCode = reg.allocateBlockSpace();
         String secondCode = reg.allocateBlockSpace();
+        String thirdBlock = reg.allocateBlockSpace();
         String nextCode = reg.allocateBlockSpace();
         String result = reg.allocateTemperSpace();
-        CondBlock condBlock = new CondBlock(firstCode,secondCode, nextCode, result);
+        CondBlock condBlock = new CondBlock(firstCode, secondCode, thirdBlock, nextCode, result);
         blockInfoStack.push(condBlock);
     }
 

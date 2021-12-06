@@ -1,13 +1,14 @@
 package dataStructure.block;
 
 public class CondBlock extends BlockInfo {
-    String firstCode, secondCode, nextCode;
+    String firstCode, secondCode,thirdCode, nextCode;
     String resultRegSpace;
 
-    public CondBlock(String firstCode, String secondCode,  String nextCode, String resultRegSpace) {
+    public CondBlock(String firstCode, String secondCode, String thirdCode, String nextCode, String resultRegSpace) {
         super(BlockInfo.COND);
         this.firstCode = firstCode;
         this.secondCode = secondCode;
+        this.thirdCode = thirdCode;
         this.nextCode = nextCode;
         this.resultRegSpace = resultRegSpace;
     }
@@ -28,4 +29,7 @@ public class CondBlock extends BlockInfo {
         return resultRegSpace;
     }
 
+    public String getThirdCode() {
+        return thirdCode;
+    }
 }

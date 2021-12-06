@@ -52,8 +52,8 @@ mulexp : unaryExp # singleMulExp| mulexp('*'|'/'|'%') unaryExp # multipleMulExp;
 relExp : addexp # singleRelExp|
         relExp('<'|'>'|'<='|'>=') addexp # multipleRelExp;
 eqExp : relExp # singleEqExp | eqExp('=='|'!=') relExp #multipleEqExp;
-lAndExp:eqExp # singleLAndExp|lAndExp '&&'eqExp # multipleLAndExp;
-lOrExp: lAndExp # singleLOrExp |lOrExp'||'lAndExp # multipleLOrExp;
+lAndExp:eqExp # singleLAndExp|eqExp '&&'lAndExp # multipleLAndExp;
+lOrExp: lAndExp # singleLOrExp |lAndExp'||'lOrExp # multipleLOrExp;
 unaryOp: '+'|'-'|'!';
 unaryExp : primaryExp # pri| Ident '(' funcRParams? ')' # func
             |unaryOp unaryExp # unary;
