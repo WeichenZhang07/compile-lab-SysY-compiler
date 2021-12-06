@@ -370,15 +370,13 @@ public class myListener extends grammerBaseListener {
     public void exitSingleEqExp(grammerParser.SingleEqExpContext ctx) {
         int s = isParentMultiCond(ctx);
         nodeInStack right = stack.pop();
+        nodeInStack thisNode = right;
         if (right.getVarType() != dataStructure.basicFinal.I1) {
-            String thisCode = registerManager.allocateTemperSpace();
-            cmdBuffer.addToOperateBuffer(thisCode + " = trunc i32 " + right.getContext() + " to i1");
-            right.setVarType(dataStructure.basicFinal.I1);
-            right.setContext(thisCode);
-            right.setType(basicFinal.IS_VAL);
+             thisNode = Calculator.compare(right,new nodeInStack("0",basicFinal.IS_NUM,basicFinal.I32,true),"=="
+            ,registerManager,cmdBuffer);
         }
-        circuit1(right, s);
-        stack.push(right);
+        circuit1(thisNode, s);
+        stack.push(thisNode);
 
     }
 
