@@ -14,6 +14,10 @@ public class llvmCmdBuffer {
         operateBuffer.add("   " + pt);
     }
 
+    public void addToOperateBuffer(String pt ,boolean n) {
+        operateBuffer.add(pt);
+    }
+
     public void putsAllocate() {
         for (String s : allocateBuffer) {
             System.out.println(s);

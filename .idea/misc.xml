@@ -6,7 +6,7 @@
         <PerGrammarGenerationSettings>
           <option name="fileName" value="$PROJECT_DIR$/src/grammer.g4" />
           <option name="autoGen" value="true" />
-          <option name="outputDir" value="E:\Documents\code\compile\compile-Lab5\src" />
+          <option name="outputDir" value="D:\Users\1323\Documents\code\compile-lab\src" />
           <option name="libDir" value="" />
           <option name="encoding" value="" />
           <option name="pkg" value="gen" />

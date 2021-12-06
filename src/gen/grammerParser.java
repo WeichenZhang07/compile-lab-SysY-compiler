@@ -1,4 +1,4 @@
-// Generated from E:/Documents/code/compile/compile-Lab5/src\grammer.g4 by ANTLR 4.9.2
+// Generated from D:/Users/1323/Documents/code/compile-lab/src\grammer.g4 by ANTLR 4.9.2
 package gen;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;

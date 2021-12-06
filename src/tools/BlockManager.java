@@ -2,10 +2,7 @@ package tools;
 
 import dataStructure.VarType.Function;
 import dataStructure.basicFinal;
-import dataStructure.block.BlockInfo;
-import dataStructure.block.FuncBlock;
-import dataStructure.block.IfInfo;
-import dataStructure.block.WhileBlockInfo;
+import dataStructure.block.*;
 
 import java.util.Stack;
 
@@ -54,6 +51,24 @@ public class BlockManager {
 
     }
 
+    public void enterCondBlock(RegisterManager reg) {
+        String firstCode = reg.allocateBlockSpace();
+        String secondCode = reg.allocateBlockSpace();
+        String nextCode = reg.allocateBlockSpace();
+        String result = reg.allocateTemperSpace();
+        CondBlock condBlock = new CondBlock(firstCode,secondCode, nextCode, result);
+        blockInfoStack.push(condBlock);
+    }
+
+    public CondBlock getCurrentCondInfo() {
+        for (int i = blockInfoStack.size() - 1; i >= 0; i--) {
+            if (blockInfoStack.get(i) instanceof CondBlock) {
+                return (CondBlock) blockInfoStack.get(i);
+            }
+        }
+        return null;
+    }
+
     public IfInfo getCurrentIfInfo() {
         for (int i = blockInfoStack.size() - 1; i >= 0; i--) {
             if (blockInfoStack.get(i) instanceof IfInfo) {
@@ -83,8 +98,7 @@ public class BlockManager {
                     System.err.println("未定义返回值");
                     System.exit(16);
                 }
-            }
-            else{
+            } else {
                 if (thisBlock.getRetType() == basicFinal.VOID) {
                     buffer.addToOperateBuffer("ret void");
                 } else {
