@@ -74,7 +74,7 @@ public class myListener extends grammerBaseListener {
         nodeInStack thisNode = right;
         if (right.getVarType() != basicFinal.I1) {
             thisNode = Calculator.compare(new nodeInStack("0", basicFinal.IS_NUM,
-                    basicFinal.I32, true), right, "<", registerManager, cmdBuffer);
+                    basicFinal.I32, true), right, "!=", registerManager, cmdBuffer);
         }
         stack.push(thisNode);
     }
@@ -219,7 +219,14 @@ public class myListener extends grammerBaseListener {
 
     @Override
     public void exitCond(grammerParser.CondContext ctx) {
-
+        nodeInStack right = stack.pop();
+        if (right.getVarType() != dataStructure.basicFinal.I1) {
+            String thisCode = registerManager.allocateTemperSpace();
+            cmdBuffer.addToOperateBuffer(thisCode + " = trunc i32 " + right.getContext() + " to i1");
+            right.setVarType(dataStructure.basicFinal.I1);
+            right.setContext(thisCode);
+        }
+        stack.push(right);
     }
 
     @Override
@@ -369,15 +376,7 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitSingleEqExp(grammerParser.SingleEqExpContext ctx) {
         int s = isParentMultiCond(ctx);
-        nodeInStack right = stack.pop();
-        nodeInStack thisNode = right;
-        if (right.getVarType() != dataStructure.basicFinal.I1) {
-             thisNode = Calculator.compare(right,new nodeInStack("0",basicFinal.IS_NUM,basicFinal.I32,true),"!="
-            ,registerManager,cmdBuffer);
-        }
-        circuit1(thisNode, s);
-        stack.push(thisNode);
-
+        circuit1(stack.peek(), s);
     }
 
     private void circuit1(nodeInStack thisNode, int s) {
