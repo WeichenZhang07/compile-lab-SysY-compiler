@@ -430,6 +430,10 @@ public class myListener extends grammerBaseListener {
             logicZext(left);
             left = stack.pop();
         }
+        if (!(right.getVarType() == basicFinal.I1)) {
+            logicZext(right);
+            right = stack.pop();
+        }
 
         String operator = "&&";
         int s = isParentMultiCond(ctx);
@@ -462,6 +466,10 @@ public class myListener extends grammerBaseListener {
         if (!(left.getVarType() == basicFinal.I1)) {
             logicZext(left);
             left = stack.pop();
+        }
+        if (!(right.getVarType() == basicFinal.I1)) {
+            logicZext(right);
+            right = stack.pop();
         }
 
         String operator = "||";
