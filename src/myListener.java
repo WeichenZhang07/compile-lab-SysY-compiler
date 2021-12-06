@@ -372,7 +372,7 @@ public class myListener extends grammerBaseListener {
         nodeInStack right = stack.pop();
         nodeInStack thisNode = right;
         if (right.getVarType() != dataStructure.basicFinal.I1) {
-             thisNode = Calculator.compare(right,new nodeInStack("0",basicFinal.IS_NUM,basicFinal.I32,true),"=="
+             thisNode = Calculator.compare(right,new nodeInStack("0",basicFinal.IS_NUM,basicFinal.I32,true),"!="
             ,registerManager,cmdBuffer);
         }
         circuit1(thisNode, s);
