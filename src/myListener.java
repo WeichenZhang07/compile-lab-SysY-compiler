@@ -1,6 +1,7 @@
 import dataStructure.*;
 import dataStructure.VarType.Array;
 import dataStructure.VarType.Function;
+import dataStructure.block.CondBlock;
 import dataStructure.block.IfInfo;
 import dataStructure.block.WhileBlockInfo;
 import dataStructure.FuncParamNode;
@@ -195,7 +196,7 @@ public class myListener extends grammerBaseListener {
     @Override
     public void enterIfBlock(grammerParser.IfBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
-        cmdBuffer.addToOperateBuffer(thisInfo.getIfBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisInfo.getIfBlockCode().substring(1) + ":",false);
     }
 
     @Override
@@ -229,7 +230,7 @@ public class myListener extends grammerBaseListener {
     @Override
     public void enterElseBlock(grammerParser.ElseBlockContext ctx) {
         IfInfo thisInfo = blockManager.getCurrentIfInfo();
-        cmdBuffer.addToOperateBuffer(thisInfo.getElseBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisInfo.getElseBlockCode().substring(1) + ":",false);
         isElse = true;
     }
 
@@ -243,7 +244,7 @@ public class myListener extends grammerBaseListener {
     @Override
     public void exitIf(grammerParser.IfContext ctx) {
         IfInfo thisInfo = (IfInfo) blockManager.exitCurrentBlock(cmdBuffer);
-        cmdBuffer.addToOperateBuffer(thisInfo.getNextBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisInfo.getNextBlockCode().substring(1) + ":",false);
         varsManager.exitBlock();
     }
 
@@ -369,27 +370,67 @@ public class myListener extends grammerBaseListener {
     }
 
     @Override
+    public void enterMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
+        blockManager.enterCondBlock(registerManager);
+        CondBlock thisInfo = blockManager.getCurrentCondInfo();
+        String firstCode = thisInfo.getFirstCode();
+        BasicLlvmPrinter.printBr(firstCode, cmdBuffer);
+        cmdBuffer.addToOperateBuffer(firstCode.substring(1) + ":", false);
+    }
+
+    @Override
     public void exitMultipleLAndExp(grammerParser.MultipleLAndExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        if (!(right.getVarType() == basicFinal.I1)) {
-            logicZext(right);
-            right = stack.pop();
+        CondBlock thisInfo = blockManager.getCurrentCondInfo();
+        if (!(left.getVarType() == basicFinal.I1)) {
+            logicZext(left);
+            left = stack.pop();
         }
+        BasicLlvmPrinter.printBr(left.getContext(), thisInfo.getSecondCode(), thisInfo.getNextCode(), cmdBuffer);
+        cmdBuffer.addToOperateBuffer(thisInfo.getSecondCode().substring(1)+":", false);
         String operator = "&&";
-        stack.push(Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer));
+        nodeInStack andNode = Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer);
+        BasicLlvmPrinter.printBr(thisInfo.getNextCode(), cmdBuffer);
+        String result = registerManager.allocateTemperSpace();
+        cmdBuffer.addToOperateBuffer(thisInfo.getNextCode().substring(1)+":", false);
+        cmdBuffer.addToOperateBuffer(result+" = phi i1 [false, "+thisInfo.getFirstCode()+" ], [ "+andNode.getContext()
+        +", "+thisInfo.getSecondCode()+" ]");
+        nodeInStack thisNode = new nodeInStack(result,basicFinal.IS_VAL,basicFinal.I1,false);
+        stack.push(thisNode);
+        blockManager.exitCurrentBlock(cmdBuffer);
+    }
+
+    @Override
+    public void enterMultipleLOrExp(grammerParser.MultipleLOrExpContext ctx) {
+        blockManager.enterCondBlock(registerManager);
+        CondBlock thisInfo = blockManager.getCurrentCondInfo();
+        String firstCode = thisInfo.getFirstCode();
+        BasicLlvmPrinter.printBr(firstCode, cmdBuffer);
+        cmdBuffer.addToOperateBuffer(firstCode.substring(1) + ":", false);
     }
 
     @Override
     public void exitMultipleLOrExp(grammerParser.MultipleLOrExpContext ctx) {
         nodeInStack right = stack.pop();
         nodeInStack left = stack.pop();
-        if (!(right.getVarType() == basicFinal.I1)) {
-            logicZext(right);
-            right = stack.pop();
+        CondBlock thisInfo = blockManager.getCurrentCondInfo();
+        if (!(left.getVarType() == basicFinal.I1)) {
+            logicZext(left);
+            left = stack.pop();
         }
+        BasicLlvmPrinter.printBr(left.getContext(), thisInfo.getNextCode(), thisInfo.getSecondCode(), cmdBuffer);
+        cmdBuffer.addToOperateBuffer(thisInfo.getSecondCode().substring(1)+":", false);
         String operator = "||";
-        stack.push(Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer));
+        nodeInStack andNode = Calculator.logicalOperation(left, right, operator, registerManager, cmdBuffer);
+        BasicLlvmPrinter.printBr(thisInfo.getNextCode(), cmdBuffer);
+        String result = registerManager.allocateTemperSpace();
+        cmdBuffer.addToOperateBuffer(thisInfo.getNextCode().substring(1)+":", false);
+        cmdBuffer.addToOperateBuffer(result+" = phi i1 [true, "+thisInfo.getFirstCode()+" ], [ "+andNode.getContext()
+                +", "+thisInfo.getSecondCode()+" ]");
+        nodeInStack thisNode = new nodeInStack(result,basicFinal.IS_VAL,basicFinal.I1,false);
+        stack.push(thisNode);
+        blockManager.exitCurrentBlock(cmdBuffer);
     }
 
     @Override
@@ -519,7 +560,7 @@ public class myListener extends grammerBaseListener {
         blockManager.enterWhileBlock(registerManager);
         WhileBlockInfo thisBlockInfo = blockManager.getCurrentWhileInfo();
         BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode(), cmdBuffer);
-        cmdBuffer.addToOperateBuffer(thisBlockInfo.getWhileStateCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisBlockInfo.getWhileStateCode().substring(1) + ":",false);
     }
 
     @Override
@@ -534,7 +575,7 @@ public class myListener extends grammerBaseListener {
         thisBlockInfo.setCondRegName(right.getContext());
         BasicLlvmPrinter.printBr(thisBlockInfo.getCondRegName(), thisBlockInfo.getWhileBlockCode(),
                 thisBlockInfo.getNextBlockCode(), cmdBuffer);
-        cmdBuffer.addToOperateBuffer(thisBlockInfo.getWhileBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisBlockInfo.getWhileBlockCode().substring(1) + ":",false);
     }
 
     @Override
@@ -542,7 +583,7 @@ public class myListener extends grammerBaseListener {
         WhileBlockInfo thisBlockInfo = (WhileBlockInfo) blockManager.exitCurrentBlock(cmdBuffer);
         varsManager.exitBlock();
         BasicLlvmPrinter.printBr(thisBlockInfo.getWhileStateCode(), cmdBuffer);
-        cmdBuffer.addToOperateBuffer(thisBlockInfo.getNextBlockCode().substring(1) + ":");
+        cmdBuffer.addToOperateBuffer(thisBlockInfo.getNextBlockCode().substring(1) + ":",false);
     }
 
     @Override
