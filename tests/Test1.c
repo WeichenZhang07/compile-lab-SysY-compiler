@@ -1,4 +1,6 @@
+int d = 3;
 int add(int a,int b){
+d=10;
 return a+b;
 }
 
@@ -7,9 +9,5 @@ int main() {
     a=0;
     b=1;
     c=2;
-    d=3;
-    if(c==0 && b ==0){
-    d=4;
-    }
-    return d;
+    if(b ==0&&add(a,b)==1) return 0;
 }
